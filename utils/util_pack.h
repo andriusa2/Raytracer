@@ -4,6 +4,6 @@
 #include "./constants.h"
 #include "./Logger.h"
 #include "./Vector3D.h"
-#include "../libs/dSFMT.h"
+#include "./libs/dSFMT.h"
 
 #endif

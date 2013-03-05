@@ -3,12 +3,11 @@
 
 #include <cmath>
 #include <ostream>
-using namespace std;
 
 class Vector3D {
 public:
     Vector3D():x(0), y(0), z(0) {};
-    Vector3D(a_x, a_y, a_z):x(a_x), y(a_y), z(a_z) {};
+    Vector3D(float a_x, float a_y, float a_z):x(a_x), y(a_y), z(a_z) {};
     void normalize(){
 		float t = 1.0f / length(); 
 		x *= t;
@@ -39,8 +38,8 @@ public:
 	friend Vector3D operator* (const Vector3D& a, const Vector3D& b) {return Vector3D( a.x * b.x, a.y * b.y, a.z * b.z );}
 	// friend Vector3D operator/ (const Vector3D& a, const Vector3D& b) {return Vector3D( a.x / b.x, a.y / b.y, a.z / b.z );}
 	// bool operator> (const Vector3D& b){return ( x > b.x && y > b.y && z > b.z );}
-    friend ostream& operator<< (ostream& out, const Vector3D v) { out << "(" << v.x << ";" << v.y << ";" << v.z << ")"; }
+    friend std::ostream& operator<< (std::ostream& out, const Vector3D v) { out << "(" << v.x << ";" << v.y << ";" << v.z << ")";  return out;}
     float x, y, z;
-}
+};
 
 #endif

@@ -12,7 +12,7 @@ const float PI = 3.141592653589793238462f;
 const float INF = 100000000000.0;				//infinity
 
 #define DEFAULT_CONFIG "config.txt"
-#define DEFAULT_LOG "log.txt"
+#define DEFAULT_LOG "raytracer.log"
 #define COL_SCREEN 0xFF88FF88
 
 //hash table stuff
