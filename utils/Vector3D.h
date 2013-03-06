@@ -38,7 +38,7 @@ public:
 	friend Vector3D operator* (const Vector3D& a, const Vector3D& b) {return Vector3D( a.x * b.x, a.y * b.y, a.z * b.z );}
 	// friend Vector3D operator/ (const Vector3D& a, const Vector3D& b) {return Vector3D( a.x / b.x, a.y / b.y, a.z / b.z );}
 	// bool operator> (const Vector3D& b){return ( x > b.x && y > b.y && z > b.z );}
-    friend std::ostream& operator<< (std::ostream& out, const Vector3D v) { out << "(" << v.x << ";" << v.y << ";" << v.z << ")";  return out;}
+    friend std::ostream& operator<< (std::ostream& out, const Vector3D& v) { out << "(" << v.x << ";" << v.y << ";" << v.z << ")";  return out;}
     float x, y, z;
 };
 

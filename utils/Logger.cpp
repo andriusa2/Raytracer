@@ -8,6 +8,11 @@ Logger::Logger(const char filename[]) {
 void Logger::flush() {
     out.flush();
 }
+void Logger::line() {
+    for (int i = 0; i < 40; i++)
+        out << '#';
+    out << '\n';
+}
 void Logger::outTime() {
     char buf[12];
     const char pattern[] = "[%H:%M:%S] ";

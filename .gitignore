@@ -19,3 +19,6 @@
 *.opensdf
 *.txt
 *.log
+*.ini
+*.obj
+*.mtl

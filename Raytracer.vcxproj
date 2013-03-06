@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="utils\config.cpp" />
     <ClCompile Include="utils\Logger.cpp" />
   </ItemGroup>
   <ItemGroup>
