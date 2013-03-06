@@ -24,3 +24,4 @@ void Logger::outString(const char str[]){
     out << str << "\n";
 }
 
+static Logger log();

@@ -80,13 +80,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="utils\config.cpp" />
+    <ClCompile Include="primitives\Triangle.cpp" />
+    <ClCompile Include="utils\Config.cpp" />
     <ClCompile Include="utils\Logger.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="core\Engine.h" />
+    <ClInclude Include="primitives\Triangle.h" />
+    <ClInclude Include="primitives\Vertex.h" />
     <ClInclude Include="utils\Config.h" />
     <ClInclude Include="utils\constants.h" />
     <ClInclude Include="utils\Logger.h" />
+    <ClInclude Include="utils\Ray.h" />
     <ClInclude Include="utils\util_pack.h" />
     <ClInclude Include="utils\Vector3D.h" />
   </ItemGroup>
