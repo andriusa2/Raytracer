@@ -44,7 +44,8 @@ public:
     void setX(float x) {f[0] = x;}
     void setY(float y) {f[1] = y;}
     void setZ(float z) {f[2] = z;}
-    float& operator[] (int id) {return f[id];}
+    float& operator[] (const unsigned int & id) {return f[id];}
+    float get(const unsigned int & id) const {return f[id];}
 private:
     float f[3];
 };
