@@ -1,6 +1,9 @@
 #include "./Triangle.h"
 
-Triangle::Triangle():vertices() {
+Triangle::Triangle() {
+    vertices[0] = 0;
+    vertices[1] = 0;
+    vertices[2] = 0;
 }
 
 Triangle::Triangle(Vertex* v1, Vertex* v2, Vertex* v3, bool calcNorms) {

@@ -44,6 +44,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -79,18 +80,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="core\Camera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="materials\Material.cpp" />
     <ClCompile Include="primitives\Triangle.cpp" />
     <ClCompile Include="utils\Config.cpp" />
     <ClCompile Include="utils\Logger.cpp" />
+    <ClCompile Include="utils\ObjLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="core\Camera.h" />
     <ClInclude Include="core\Engine.h" />
+    <ClInclude Include="core\Scene.h" />
+    <ClInclude Include="core\Whitted.h" />
+    <ClInclude Include="materials\Material.h" />
+    <ClInclude Include="materials\material_pack.h" />
     <ClInclude Include="primitives\Triangle.h" />
     <ClInclude Include="primitives\Vertex.h" />
     <ClInclude Include="utils\Config.h" />
     <ClInclude Include="utils\constants.h" />
     <ClInclude Include="utils\Logger.h" />
+    <ClInclude Include="utils\ObjLoader.h" />
     <ClInclude Include="utils\Ray.h" />
     <ClInclude Include="utils\util_pack.h" />
     <ClInclude Include="utils\Vector3D.h" />

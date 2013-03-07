@@ -1,6 +1,6 @@
 #include "./utils/util_pack.h"
 
 int main () {
-    LOG.line();
+    LogDefault.line();
     return 0;
 }
