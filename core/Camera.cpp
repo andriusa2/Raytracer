@@ -38,3 +38,12 @@ std::ostream& operator<< (std::ostream &out, const Camera & cam) {
         "\n\tFront=" << cam.front <<
         "\n\tRight=" << cam.right;
 }
+
+void Camera::getDirection(Ray & ray, float x, float y) {
+    ray.direction = front + (x - 0.5f) * right + (y - 0.5f) * up;
+    LogDefault.outValue("|ray.direction|",ray.direction.length());
+    ray.direction.normalize();
+}
+Vector3D Camera::getPos() {
+    return getPos();
+}
