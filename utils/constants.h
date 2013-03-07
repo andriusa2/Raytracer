@@ -4,15 +4,15 @@
 /*
     Provides default values to some processess, should be only used in config
 */
-using namespace std;
 
+#include "./Vector3D.h"
 const float EPS =   0.00001f;	//small value
 const int MAX_DEPTH = 12;		//how many bounces can ray do
-const float PI = 3.141592653589793238462f;
-const float INF = 100000000000.0;				//infinity
+const float PI = 3.14159265359f;
+const float INF = 10000000.0;				//infinity
 const int DEFAULT_WIDTH = 800;
 const int DEFAULT_HEIGHT = 600;
-
+const Vector3D V3D_BLANK(0,0,0);
 #define DEFAULT_CONFIG "config.ini"
 #define DEFAULT_LOG "raytracer.log"
 #define DEFAULT_SCENE "scene.ini"
