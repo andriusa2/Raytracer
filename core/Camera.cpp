@@ -2,6 +2,7 @@
 
 Camera::Camera() {
     set(V3D_BLANK, Vector3D(0,0,1), Vector3D(0,1,0));
+    LogDefault.outValue("IntializedCamera",*this);
 }
 
 Camera::Camera(const Vector3D & pos,
