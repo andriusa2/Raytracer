@@ -1,6 +1,6 @@
 #include "./Material.h"
 
-Material::Material(int BRDF, Vector3D col): color(col), type(BRDF)
+Material::Material(int BRDF, Vector3D col, bool emit): color(col), type(BRDF), emits(emit)
 {
 }
 
@@ -18,4 +18,12 @@ Vector3D& Material::getColor(const float& u, const float& v){
 
 int Material::getType() {
     return type;
+}
+
+bool Material::isEmitter() {
+    return emits;
+}
+
+void Material::setEmitter(bool val) {
+    emits = val;
 }
