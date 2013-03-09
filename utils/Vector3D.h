@@ -49,7 +49,9 @@ public:
 	// bool operator> (const Vector3D& b){return ( x > b.x && y > b.y && z > b.z );}
     friend std::ostream& operator<< (std::ostream& out, const Vector3D& v) { out << "(" << v.get(0) << ";" << v.get(1) << ";" << v.get(2) << ")";  return out;}
     friend std::istream& operator>> (std::istream& in, Vector3D& v) { in >> v[0] >> v[1] >> v[2];  return in;}
+    unsigned int toRGBCol() { return (toCol(f[0]) << 16) + (toCol(f[1]) << 8) + toCol(f[2]);}
 private:
+    int toCol(float a) { return (a < 0) ? 0 : ((a > 1) ? 255 : (int)(a * 255.0 + 0.1)); }
     float f[3];
 };
 

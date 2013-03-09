@@ -9,5 +9,6 @@
 #include "./Vector3D.h"
 #include "./Ray.h"
 #include "../libs/dSFMT.h"
-static Logger LogDefault;
+
+extern Logger * LogDefault;
 #endif

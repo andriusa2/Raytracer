@@ -15,6 +15,7 @@ public:
     void loadScene(const char filename[]);
     ~Scene();
     Vector3D accumulateLight(Ray& ray, Vector3D & normal);
+    Camera * getCamera();
 private:
     void reset();
     std::vector<Triangle*> triangles;

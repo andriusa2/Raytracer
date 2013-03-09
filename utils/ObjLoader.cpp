@@ -2,14 +2,14 @@
 
 void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
                      vector<Material*> & mats, Material* defMaterial) {
-    LogDefault.line();
-    LogDefault.outString("Loading object ./");
-    LogDefault.outString(filename);
+    LogDefault->line();
+    LogDefault->outString("Loading object ./");
+    LogDefault->outStringN(filename);
 
     ifstream obj(filename);
     if (!obj.good()) {
-        LogDefault.outString("Loading failed, aborting");
-        LogDefault.line();
+        LogDefault->outStringN("Loading failed, aborting");
+        LogDefault->line();
         return;
     }
     // the file loads, awesome!
@@ -40,9 +40,9 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
         }
         obj.ignore(256,'\n');
     }
-    LogDefault.outValue("Vertices loaded", vs.size());
-    LogDefault.outValue("Triangles loaded",triscnt);
-    LogDefault.line();
+    LogDefault->outValue("Vertices loaded", vs.size());
+    LogDefault->outValue("Triangles loaded",triscnt);
+    LogDefault->line();
     // everything is autodestroyed at the end of scope
     // we want to keep our beloved vertices though
 }

@@ -75,6 +75,12 @@
     <ClInclude Include="libs\dSFMT-params19937.h">
       <Filter>libs</Filter>
     </ClInclude>
+    <ClInclude Include="core\Integrator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\core_pack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="utils\Logger.cpp">
@@ -103,6 +109,12 @@
     </ClCompile>
     <ClCompile Include="libs\dSFMT.c">
       <Filter>libs</Filter>
+    </ClCompile>
+    <ClCompile Include="core\Whitted.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\Engine.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

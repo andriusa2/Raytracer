@@ -1,6 +1,7 @@
 #include "./Scene.h"
 
 Scene::Scene(Config& config) {
+    LogDefault->criticalOutValue("ScenePath", config.getStringByName("scene"));
     loadScene(config.getStringByName("scene").c_str());
 }
 
@@ -25,7 +26,7 @@ Triangle* Scene::intersect(Ray& ray, float& dist) {
 
     for (std::vector<Triangle*>::iterator it = triangles.begin();
         it != triangles.end(); it++) {
-            float tmpDist = 0;
+            float tmpDist = INF;
             if ((*it)->intersect(ray, tmpDist) == Triangle::HIT) {
                 if (tmpDist < dist) {
                     dist = tmpDist;
@@ -64,12 +65,13 @@ Vector3D Scene::accumulateLight(Ray& ray, Vector3D & normal) {
     for (std::vector<Triangle*>::iterator it = lights.begin();
         it != lights.end(); it++) {
             light.direction = (*it)->sampleSurface() - light.origin;
-            float tmpDist = 0;
+            float tmpDist = INF;
             intersect(light, tmpDist);
-            if (tmpDist > 1.0f - EPS) {
+            if (tmpDist > 1.0f - EPS)
+            {
                 // it is very likely that it was not obscured
                 // N.D/r^2, D' = sqrt(r)*D, 
-                retval += normal.dot(light.direction)/
+                retval += -normal.dot(light.direction)/
                     (light.direction.length() * light.direction.sqlength() ) *
                     (*it)->getMat()->getColor();
             }
@@ -78,15 +80,15 @@ Vector3D Scene::accumulateLight(Ray& ray, Vector3D & normal) {
 }
 
 void Scene::loadScene(const char filename[]) {
-    LogDefault.line();
-    LogDefault.outString("Trying to load scene from file ");
-    LogDefault.outString(filename);
-    LogDefault.outString("\n");
-
-    ifstream in;
+    LogDefault->line();
+    LogDefault->outString("Trying to load scene from file ");
+    LogDefault->outString(filename);
+    LogDefault->outString("\n");
+    LogDefault->flush();
+    ifstream in(filename);
     if (!in.good()) {
-        LogDefault.criticalOutValue("Loading failed, file not found?","");
-        LogDefault.line();
+        LogDefault->criticalOutValue("Loading failed, file not found?","");
+        LogDefault->line();
         return;
     }
     /*
@@ -125,6 +127,8 @@ void Scene::loadScene(const char filename[]) {
     bool argb0 = false;
     map <string, Material*> mats;
     while (in >> cmd) {
+        
+        in.ignore(256,'\n');
         switch(cmd) {
         case 'c': // camera
             while ((in >> cmd1)) {
@@ -178,9 +182,33 @@ void Scene::loadScene(const char filename[]) {
                 }
                 in.ignore(256,'\n');
             }
-            LogDefault.criticalOutValue("LoadObjFile",buf0);
+            LogDefault->criticalOutValue("LoadObjFile",buf0);
             ObjLoader::Load(buf0.c_str(),triangles,materials,mats[buf1]);
             break;
+        case 't' :
+            while (in >> cmd1) {
+                if (cmd1 == '}') break;
+                if (cmd1 == '0') {
+                    in >> arg0;
+                }
+                if (cmd1 == '1') {
+                    in >> arg1;
+                }
+                if (cmd1 == '2') {
+                    in >> arg2;
+                }
+                if (cmd1 == 'm') {
+                    in.ignore(256, ' ');
+                    in >> buf0;
+                }
+            }
+            triangles.push_back(new Triangle (
+                new Vertex(arg0),
+                new Vertex(arg1),
+                new Vertex(arg2)));
+            triangles.back()->setMat(mats[buf0]);
+        default:
+            in.ignore(256,'\n');
         }
     }
     for (vector<Triangle*>::iterator it = triangles.begin();
@@ -190,4 +218,8 @@ void Scene::loadScene(const char filename[]) {
             }
     }
 
+}
+
+Camera * Scene::getCamera() {
+    return &cam;
 }

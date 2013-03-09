@@ -16,7 +16,7 @@ const int DEFAULT_HEIGHT = 600;
 const Vector3D V3D_BLANK(0,0,0);
 const unsigned int MOD3_ACCEL[] = {0,1,2,0,1,2,0};
 
-static dsfmt_t* __dsfmt_sz; // should be explicitly initialized somewhere
+extern dsfmt_t* __dsfmt_sz; // should be explicitly initialized somewhere
 
 #define GET_RND(id) dsfmt_genrand_close_open(__dsfmt_sz + id)
 #define DEFAULT_CONFIG "config.ini"

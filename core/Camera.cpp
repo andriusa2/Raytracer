@@ -2,7 +2,7 @@
 
 Camera::Camera() {
     set(V3D_BLANK, Vector3D(0,0,1), Vector3D(0,1,0));
-    LogDefault.outValue("IntializedCamera",*this);
+    LogDefault->outValue("IntializedCamera",*this);
 }
 
 Camera::Camera(const Vector3D & pos,
@@ -31,6 +31,9 @@ void Camera::set(const Vector3D & pos,
     up.normalize();
     right = up.cross(front);
     right.normalize();
+    up = front.cross(right);
+    up.normalize();
+    LogDefault->outValue("Camera reset", *this);
 }
 
 std::ostream& operator<< (std::ostream &out, const Camera & cam) {
@@ -38,13 +41,14 @@ std::ostream& operator<< (std::ostream &out, const Camera & cam) {
         "\n\tUp=" << cam.up <<
         "\n\tFront=" << cam.front <<
         "\n\tRight=" << cam.right;
+    return out;
 }
 
 void Camera::getDirection(Ray & ray, float x, float y) {
     ray.direction = front + (x - 0.5f) * right + (y - 0.5f) * up;
-    LogDefault.outValue("|ray.direction|",ray.direction.length());
+    //LogDefault->outValue("|ray.direction|",ray.direction.length());
     ray.direction.normalize();
 }
 Vector3D Camera::getPos() {
-    return getPos();
+    return position;
 }

@@ -21,7 +21,11 @@ void Logger::outTime() {
     out << buf;
 }
 void Logger::outString(const char str[]){
-    out << str << "\n";
+    out << str;
+}
+void Logger::outStringN(const char str[]) {
+    outTime();
+    out << str << '\n';
 }
 
-static Logger log();
+Logger * LogDefault;
