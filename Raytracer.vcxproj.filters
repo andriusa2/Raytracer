@@ -5,10 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
@@ -16,53 +12,28 @@
     <Filter Include="libs">
       <UniqueIdentifier>{81d1f216-3b8c-4e10-a292-b0a1cd4df2da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{960f0398-3e6f-4053-9b21-edb773cfd8d3}</UniqueIdentifier>
+      <Extensions>core/</Extensions>
+    </Filter>
+    <Filter Include="integrators">
+      <UniqueIdentifier>{8efa0203-ef90-4c5d-8e6f-11cac7dc125b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="materials">
+      <UniqueIdentifier>{b399969d-57bf-4f03-8f53-3ea198b230df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="primitives">
+      <UniqueIdentifier>{2da953d7-fb31-4fb1-a1f5-bfb7e04e9ac0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{6cef5187-1460-4eaa-9e61-98152a21c8b1}</UniqueIdentifier>
+      <Extensions>utils/*</Extensions>
+    </Filter>
+    <Filter Include="packs">
+      <UniqueIdentifier>{af65863d-9053-40c4-ad6a-1d3ec4db8a8a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="utils\Vector3D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\constants.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\Config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\Logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\util_pack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="primitives\Triangle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\Ray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="primitives\Vertex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="core\Engine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="core\Whitted.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="core\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="materials\Material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\ObjLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="materials\material_pack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="core\Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="libs\dSFMT.h">
       <Filter>libs</Filter>
     </ClInclude>
@@ -75,46 +46,103 @@
     <ClInclude Include="libs\dSFMT-params19937.h">
       <Filter>libs</Filter>
     </ClInclude>
+    <ClInclude Include="materials\BxDF.h">
+      <Filter>materials</Filter>
+    </ClInclude>
+    <ClInclude Include="materials\Material.h">
+      <Filter>materials</Filter>
+    </ClInclude>
+    <ClInclude Include="primitives\Triangle.h">
+      <Filter>primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="primitives\Vertex.h">
+      <Filter>primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\Vector3D.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\Ray.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\ObjLoader.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\Logger.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\constants.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\Config.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="core\Camera.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\Engine.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\Scene.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\DebugRayCaster.h">
+      <Filter>integrators</Filter>
+    </ClInclude>
     <ClInclude Include="core\Integrator.h">
-      <Filter>Header Files</Filter>
+      <Filter>integrators</Filter>
+    </ClInclude>
+    <ClInclude Include="core\RayCaster.h">
+      <Filter>integrators</Filter>
+    </ClInclude>
+    <ClInclude Include="core\integrator_pack.h">
+      <Filter>packs</Filter>
     </ClInclude>
     <ClInclude Include="core\core_pack.h">
-      <Filter>Header Files</Filter>
+      <Filter>packs</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\util_pack.h">
+      <Filter>packs</Filter>
+    </ClInclude>
+    <ClInclude Include="materials\material_pack.h">
+      <Filter>packs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="utils\Logger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\Config.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="primitives\Triangle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="materials\Material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\ObjLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="core\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="core\Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="libs\dSFMT.c">
       <Filter>libs</Filter>
     </ClCompile>
-    <ClCompile Include="core\Whitted.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="materials\Material.cpp">
+      <Filter>materials</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\ObjLoader.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\Logger.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\Config.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="core\Camera.cpp">
+      <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="core\Engine.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\Scene.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="primitives\Triangle.cpp">
+      <Filter>primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="core\RayCaster.cpp">
+      <Filter>integrators</Filter>
+    </ClCompile>
+    <ClCompile Include="core\DebugRayCaster.cpp">
+      <Filter>integrators</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

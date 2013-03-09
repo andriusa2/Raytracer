@@ -14,6 +14,7 @@ const float INF = 10000000.0;				//infinity
 const int DEFAULT_WIDTH = 800;
 const int DEFAULT_HEIGHT = 600;
 const Vector3D V3D_BLANK(0,0,0);
+const Vector3D V3D_WHITE(1,1,1);
 const unsigned int MOD3_ACCEL[] = {0,1,2,0,1,2,0};
 
 extern dsfmt_t* __dsfmt_sz; // should be explicitly initialized somewhere

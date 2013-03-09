@@ -2,7 +2,7 @@
 #include <windows.h>
 
 #include "./core/core_pack.h"
-#include "./core/Whitted.h"
+#include "./core/integrator_pack.h"
 #include "./utils/Config.h"
 
 static WNDCLASS wc;
@@ -82,7 +82,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine
 	window_hdc = GetDC(wnd);
 	SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, 0, 0, 0);
     buffer = new unsigned int[SCRWIDTH * SCRHEIGHT];
-    Engine engine(new Whitted(config), config);
+    Engine engine(
+        //new DebugRayCaster(config, DebugRayCaster::getNorm),
+        new RayCaster(config),
+        config);
 	//prepare output
 	DrawWindow();
 	while (1)

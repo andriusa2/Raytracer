@@ -81,9 +81,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="core\Camera.cpp" />
+    <ClCompile Include="core\DebugRayCaster.cpp" />
     <ClCompile Include="core\Engine.cpp" />
     <ClCompile Include="core\Scene.cpp" />
-    <ClCompile Include="core\Whitted.cpp" />
+    <ClCompile Include="core\RayCaster.cpp" />
     <ClCompile Include="libs\dSFMT.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="materials\Material.cpp" />
@@ -95,14 +96,17 @@
   <ItemGroup>
     <ClInclude Include="core\Camera.h" />
     <ClInclude Include="core\core_pack.h" />
+    <ClInclude Include="core\DebugRayCaster.h" />
     <ClInclude Include="core\Engine.h" />
     <ClInclude Include="core\Integrator.h" />
+    <ClInclude Include="core\integrator_pack.h" />
     <ClInclude Include="core\Scene.h" />
-    <ClInclude Include="core\Whitted.h" />
+    <ClInclude Include="core\RayCaster.h" />
     <ClInclude Include="libs\dSFMT-common.h" />
     <ClInclude Include="libs\dSFMT-params.h" />
     <ClInclude Include="libs\dSFMT-params19937.h" />
     <ClInclude Include="libs\dSFMT.h" />
+    <ClInclude Include="materials\BxDF.h" />
     <ClInclude Include="materials\Material.h" />
     <ClInclude Include="materials\material_pack.h" />
     <ClInclude Include="primitives\Triangle.h" />

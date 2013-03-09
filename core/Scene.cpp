@@ -91,31 +91,6 @@ void Scene::loadScene(const char filename[]) {
         LogDefault->line();
         return;
     }
-    /*
-    camera {
-    pos 0 0 -2
-    lookAt 0 0 0
-    }
-
-    material {
-    name light
-    color 1 1 1
-    emit
-    }
-    material {
-    name block
-    color 0.5 0.5 0.5
-    }
-    obj {
-    file "cube.obj"
-    material block
-    scale 1 1 1
-    }
-    tri { woo pointlight
-    vert 0 0 -2
-    vert 0 0 -2
-    vert 0 0 -2
-    }*/
 
     char cmd = 0;
     char cmd1 = 0;
@@ -216,6 +191,7 @@ void Scene::loadScene(const char filename[]) {
             if ((*it)->getMat()->isEmitter()) {
                 lights.push_back(*it);
             }
+            (*it)->normalize();
     }
 
 }

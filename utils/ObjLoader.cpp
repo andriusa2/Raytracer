@@ -33,7 +33,7 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
             break;
         case 'f': // it's a triangle
             obj >> a >> b >> c;
-            tris.push_back( new Triangle(vs[a], vs[b], vs[c]) );
+            tris.push_back( new Triangle(new Vertex(*vs[a]), new Vertex(*vs[b]), new Vertex(*vs[c])) );
             tris.back()->setMat(defMaterial);
             triscnt++;
             break;
