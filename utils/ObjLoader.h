@@ -10,7 +10,8 @@ class ObjLoader {
 public:
     static void Load(const char filename[],
         vector<Triangle*> & triangles,
-        vector<Material*> & materials);
+        vector<Material*> & materials,
+        Material* defMaterial);
 private:
 
 };

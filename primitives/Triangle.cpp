@@ -19,7 +19,7 @@ Triangle::~Triangle() {
 
 }
 
-int Triangle::intersect(Ray& ray, float& dist, float& u, float& v) {
+int Triangle::intersect(Ray& ray, float& dist, float& u, float& v) const {
     const unsigned int& ku=MOD3_ACCEL[k + 1];
 	const unsigned int& kv=MOD3_ACCEL[k + 2];
 	const Vector3D& O=ray.getO();
@@ -35,13 +35,17 @@ int Triangle::intersect(Ray& ray, float& dist, float& u, float& v) {
 	const float beta=hu*cnu+hv*cnv;
 	if(beta<0) return MISS;
 	if((alpha+beta)>1)return MISS;
-	u=alpha;
-	v=beta;
+	u = vertices[0]->getU() * (1 - alpha - beta) +
+        vertices[1]->getU() * alpha +
+        vertices[2]->getU() * beta;
+	v = vertices[0]->getV() * (1 - alpha - beta) +
+        vertices[1]->getV() * alpha +
+        vertices[2]->getV() * beta;
 	dist=t;
 	return HIT;
 }
 
-int Triangle::intersect(Ray& ray, float& dist) {
+int Triangle::intersect(Ray& ray, float& dist) const {
     const unsigned int& ku=MOD3_ACCEL[k + 1];
 	const unsigned int& kv=MOD3_ACCEL[k + 2];
 	const Vector3D& O=ray.getO();
@@ -61,15 +65,15 @@ int Triangle::intersect(Ray& ray, float& dist) {
 	return HIT;
 }
 
-Vector3D Triangle::getNormal() {
+Vector3D Triangle::getNormal() const {
     return vertices[0]->getNormal();
 }
 
-Vector3D Triangle::getNormal(const float& u, const float& v) {
+Vector3D Triangle::getNormal(const float& u, const float& v) const {
     return getNormal();
 }
 
-Vertex* Triangle::getVertex(int ID) {
+Vertex* Triangle::getVertex(int ID) const {
     if (ID >= 0 && ID < 3)
         return vertices[ID];
 }
@@ -134,4 +138,24 @@ ostream& operator<< (ostream& out, const Triangle& tri) {
         "\t(bnu,bnv)=(" << tri.bnu << ";" << tri.bnv << ")\n" <<
         "\t(cnu,cnv)=(" << tri.cnu << ";" << tri.cnv << ")\n";
     return out;
+}
+
+Vector3D Triangle::sampleSurface() const {
+    // try to sample the surface uniformally
+    Vector3D retval = V3D_BLANK;
+    const Vector3D& a = vertices[0]->getPos();
+    const Vector3D& b = vertices[1]->getPos();
+    const Vector3D& c = vertices[2]->getPos();
+
+    const float e1 = GET_RND(0);
+    const float e2 = e1 * GET_RND(0);
+
+    return a * (1.0f - e1 - e2) + b * e1 + c * e2;
+}
+
+Material * Triangle::getMat() const {
+    return mat;
+}
+void Triangle::setMat(Material * a) {
+    mat = a;
 }

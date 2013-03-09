@@ -1,7 +1,7 @@
 #include "./ObjLoader.h"
 
 void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
-                     vector<Material*> & mats) {
+                     vector<Material*> & mats, Material* defMaterial) {
     LogDefault.line();
     LogDefault.outString("Loading object ./");
     LogDefault.outString(filename);
@@ -34,6 +34,7 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
         case 'f': // it's a triangle
             obj >> a >> b >> c;
             tris.push_back( new Triangle(vs[a], vs[b], vs[c]) );
+            tris.back()->setMat(defMaterial);
             triscnt++;
             break;
         }

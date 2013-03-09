@@ -81,6 +81,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="core\Camera.cpp" />
+    <ClCompile Include="core\Scene.cpp" />
+    <ClCompile Include="libs\dSFMT.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="materials\Material.cpp" />
     <ClCompile Include="primitives\Triangle.cpp" />
@@ -93,6 +95,10 @@
     <ClInclude Include="core\Engine.h" />
     <ClInclude Include="core\Scene.h" />
     <ClInclude Include="core\Whitted.h" />
+    <ClInclude Include="libs\dSFMT-common.h" />
+    <ClInclude Include="libs\dSFMT-params.h" />
+    <ClInclude Include="libs\dSFMT-params19937.h" />
+    <ClInclude Include="libs\dSFMT.h" />
     <ClInclude Include="materials\Material.h" />
     <ClInclude Include="materials\material_pack.h" />
     <ClInclude Include="primitives\Triangle.h" />
@@ -104,6 +110,9 @@
     <ClInclude Include="utils\Ray.h" />
     <ClInclude Include="utils\util_pack.h" />
     <ClInclude Include="utils\Vector3D.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="libs\dSFMT-LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

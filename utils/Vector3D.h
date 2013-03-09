@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <ostream>
-
+#include <istream>
 class Vector3D {
 public:
     Vector3D() { f[0] = 0.0f, f[1] = 0.0f, f[2] = 0.0f; }
@@ -48,6 +48,7 @@ public:
 	// friend Vector3D operator/ (const Vector3D& a, const Vector3D& b) {return Vector3D( a.x / b.x, a.y / b.y, a.z / b.z );}
 	// bool operator> (const Vector3D& b){return ( x > b.x && y > b.y && z > b.z );}
     friend std::ostream& operator<< (std::ostream& out, const Vector3D& v) { out << "(" << v.get(0) << ";" << v.get(1) << ";" << v.get(2) << ")";  return out;}
+    friend std::istream& operator>> (std::istream& in, Vector3D& v) { in >> v[0] >> v[1] >> v[2];  return in;}
 private:
     float f[3];
 };

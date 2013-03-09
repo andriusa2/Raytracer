@@ -19,16 +19,17 @@ public:
     Triangle();
     Triangle(Vertex* v1, Vertex* v2, Vertex* v3, bool calcNorms=true);
     ~Triangle();
-    Material* getMat();
+    Material* getMat() const;
     void setMat(Material * a);
-    int intersect(Ray& ray, float& dist, float& u, float& v);
-    int intersect(Ray& ray, float& dist);
-    Vector3D getNormal();
-    Vector3D getNormal(const float& u, const float& v);
+    int intersect(Ray& ray, float& dist, float& u, float& v)const;
+    int intersect(Ray& ray, float& dist)const;
+    Vector3D getNormal() const;
+    Vector3D getNormal(const float& u, const float& v) const;
     void normalize();
-    Vertex* getVertex(int ID);
+    Vertex* getVertex(int ID) const;
     void setVertex(int ID, Vertex* V);
     friend ostream& operator<< (ostream& out, const Triangle& tri);
+    Vector3D sampleSurface() const;
 private:
     void recalcNorms();
     void precompute();

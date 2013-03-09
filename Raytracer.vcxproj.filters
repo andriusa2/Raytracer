@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{81d1f216-3b8c-4e10-a292-b0a1cd4df2da}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils\Vector3D.h">
@@ -60,6 +63,18 @@
     <ClInclude Include="core\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="libs\dSFMT.h">
+      <Filter>libs</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\dSFMT-common.h">
+      <Filter>libs</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\dSFMT-params.h">
+      <Filter>libs</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\dSFMT-params19937.h">
+      <Filter>libs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="utils\Logger.cpp">
@@ -83,5 +98,16 @@
     <ClCompile Include="core\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="core\Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\dSFMT.c">
+      <Filter>libs</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="libs\dSFMT-LICENSE.txt">
+      <Filter>libs</Filter>
+    </Text>
   </ItemGroup>
 </Project>
