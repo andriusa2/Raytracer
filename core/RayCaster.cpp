@@ -1,4 +1,5 @@
 #include "./RayCaster.h"
+#include <omp.h>
 RayCaster::RayCaster(Config& config):
     scrWidth(config.getIntByName("width")),
     scrHeight(config.getIntByName("height")),
@@ -19,6 +20,7 @@ void RayCaster::linkScene(Scene * myscene) {
 
 void RayCaster::render(unsigned int * buffer) {
     Ray ray;
+#pragma omp parallel for private(ray)
     for (int y = 0; y < scrHeight; y++)
         for (int x = 0; x < scrWidth; x++) {
             ray.origin = cam->getPos();
