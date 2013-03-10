@@ -2,7 +2,8 @@
 #define ALIGNEDMMANAGER_H
 
 #include <list>
-#include "../accel/KdTree.h"
+#include "../accel/ObjList.h"
+#include "../accel/KdTree/KdTreeNode.h"
 #define NEW_ALIGNED(type,sz,align) (type*)((unsigned int)(new type[sz+1])&(~(align-1)))
 class AlignedMManager {
 public:
