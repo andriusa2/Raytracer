@@ -20,7 +20,7 @@ public:
         const Vector3D & u,
         const Vector3D & r,
         const Vector3D & f);
-    void getDirection(Ray & ray, float x, float y);
+    void getDirection(Ray & ray, float x, float y, float whr);
     Vector3D getPos();
     friend std::ostream& operator<< (std::ostream &out, const Camera & cam);
 private:

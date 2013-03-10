@@ -20,11 +20,12 @@ void RayCaster::linkScene(Scene * myscene) {
 
 void RayCaster::render(unsigned int * buffer) {
     Ray ray;
-#pragma omp parallel for private(ray)
+    omp_set_num_threads(7);
+#pragma omp parallel for schedule(dynamic) private(ray)
     for (int y = 0; y < scrHeight; y++)
         for (int x = 0; x < scrWidth; x++) {
             ray.origin = cam->getPos();
-            cam->getDirection(ray, (float(x)/(float(scrWidth))), (float(y)/float(scrHeight)));
+            cam->getDirection(ray, (float(x)/(float(scrWidth))), (float(y)/float(scrHeight)), float(scrHeight)/float(scrWidth));
             buffer[y * scrWidth + x] =
                 trace(ray, 0, 1).toRGBCol();
         }

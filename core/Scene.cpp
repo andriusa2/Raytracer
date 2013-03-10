@@ -190,6 +190,7 @@ void Scene::loadScene(const char filename[]) {
         it != triangles.end(); it++) {
             if ((*it)->getMat()->isEmitter()) {
                 lights.push_back(*it);
+                LogDefault->outValue("emitter",*it);
             }
             (*it)->normalize();
     }
