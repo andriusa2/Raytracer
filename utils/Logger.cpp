@@ -24,7 +24,6 @@ void Logger::outString(const char str[]){
     out << str;
 }
 void Logger::outStringN(const char str[]) {
-    outTime();
     out << str << '\n';
 }
 

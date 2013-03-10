@@ -27,3 +27,7 @@ bool Material::isEmitter() {
 void Material::setEmitter(bool val) {
     emits = val;
 }
+
+void Material::setDifColor(Vector3D & col) {
+    color = col;
+}
