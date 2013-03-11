@@ -29,7 +29,7 @@ unsigned int KdTreeNode::getAxis() {
 
 void KdTreeNode::setAxis(unsigned int axis) {
     if (axis < 3)
-        data = data & (~AXISBIT) + axis;
+        data = (data & (~AXISBIT)) + axis;
 }
 
 ObjList * KdTreeNode::getObjList() {
@@ -38,12 +38,12 @@ ObjList * KdTreeNode::getObjList() {
 
 void KdTreeNode::setObjList(ObjList * head) {
     setLeaf(true);
-    data = (unsigned int)head + data & (~POINTERBIT);
+    data = (unsigned int)head + (data & (~POINTERBIT));
 }
 
 void KdTreeNode::setLeft(KdTreeNode * left) {
     setLeaf(false);
-    data = (unsigned int)left + data & (~POINTERBIT);
+    data = (unsigned int)left + (data & (~POINTERBIT));
 }
 
 KdTreeNode * KdTreeNode::getLeft() {

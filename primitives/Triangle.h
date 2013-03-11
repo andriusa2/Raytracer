@@ -30,6 +30,8 @@ public:
     void setVertex(int ID, Vertex* V);
     friend ostream& operator<< (ostream& out, const Triangle& tri);
     Vector3D sampleSurface() const;
+    float getMinAxis(unsigned int axis);
+    float getMaxAxis(unsigned int axis);
 private:
     void recalcNorms();
     void precompute();

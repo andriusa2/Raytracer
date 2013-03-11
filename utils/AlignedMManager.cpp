@@ -25,8 +25,27 @@ KdTreeNode * AlignedMManager::getKdNode() {
 
 ObjList * AlignedMManager::getObjListNode() {
     if(objID < PRELOAD) {
-        objID += 2;
-        return (*currObj)+(objID-2);
+        objID += 1;
+        return (*currObj)+(objID-1);
+    }
+    list<ObjList*>::iterator it = currObj++;
+    if (currObj == objnodes.end()){
+        objnodes.push_back(NEW_ALIGNED(ObjList, PRELOAD, 16));
+        currObj = it++;
+    }
+    objID = 0;
+    return getObjListNode();
+}
+
+ObjList * AlignedMManager::getObjListNodes(int amount) {
+    if(objID < PRELOAD && (PRELOAD - objID >= amount)) {
+        objID += amount;
+        return (*currObj)+(objID-amount);
+    }
+    if (PRELOAD < amount) {
+        LogDefault->outStringN("Critical Error: not enough space for objnodes");
+        LogDefault->criticalOutValue("Asked for nodes", amount);
+        return 0;
     }
     list<ObjList*>::iterator it = currObj++;
     if (currObj == objnodes.end()){

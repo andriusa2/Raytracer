@@ -56,6 +56,8 @@
       <CompileAs>CompileAsCpp</CompileAs>
       <CompileAsManaged>false</CompileAsManaged>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -85,26 +87,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="accel\KdTree.cpp" />
+    <ClCompile Include="accel\KdTree\KdTreeNode.cpp" />
+    <ClCompile Include="accel\ObjList.cpp" />
     <ClCompile Include="core\Camera.cpp" />
     <ClCompile Include="core\DebugRayCaster.cpp" />
     <ClCompile Include="core\Engine.cpp" />
+    <ClCompile Include="core\KdDebugRayCaster.cpp" />
     <ClCompile Include="core\Scene.cpp" />
     <ClCompile Include="core\RayCaster.cpp" />
     <ClCompile Include="libs\dSFMT.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="materials\Material.cpp" />
     <ClCompile Include="primitives\Triangle.cpp" />
+    <ClCompile Include="utils\AlignedMManager.cpp" />
     <ClCompile Include="utils\Config.cpp" />
     <ClCompile Include="utils\Logger.cpp" />
     <ClCompile Include="utils\ObjLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="accel\KdTree.h" />
+    <ClInclude Include="accel\KdTree\KdHelperList.h" />
+    <ClInclude Include="accel\KdTree\KdTreeNode.h" />
+    <ClInclude Include="accel\ObjList.h" />
     <ClInclude Include="core\Camera.h" />
     <ClInclude Include="core\core_pack.h" />
     <ClInclude Include="core\DebugRayCaster.h" />
     <ClInclude Include="core\Engine.h" />
     <ClInclude Include="core\Integrator.h" />
     <ClInclude Include="core\integrator_pack.h" />
+    <ClInclude Include="core\KdDebugRayCaster.h" />
     <ClInclude Include="core\Scene.h" />
     <ClInclude Include="core\RayCaster.h" />
     <ClInclude Include="libs\dSFMT-common.h" />
@@ -114,8 +126,10 @@
     <ClInclude Include="materials\BxDF.h" />
     <ClInclude Include="materials\Material.h" />
     <ClInclude Include="materials\material_pack.h" />
+    <ClInclude Include="primitives\AABB.h" />
     <ClInclude Include="primitives\Triangle.h" />
     <ClInclude Include="primitives\Vertex.h" />
+    <ClInclude Include="utils\AlignedMManager.h" />
     <ClInclude Include="utils\Config.h" />
     <ClInclude Include="utils\constants.h" />
     <ClInclude Include="utils\Logger.h" />

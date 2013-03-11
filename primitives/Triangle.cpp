@@ -159,3 +159,18 @@ Material * Triangle::getMat() const {
 void Triangle::setMat(Material * a) {
     mat = a;
 }
+
+float Triangle::getMinAxis(unsigned int axis) {
+    float minAxis = INF;
+    for (int i = 0; i < 3; i++)
+        if (minAxis > vertices[i]->getPos().get(axis))
+            minAxis = vertices[i]->getPos().get(axis);
+    return minAxis;
+}
+float Triangle::getMaxAxis(unsigned int axis) {
+    float maxAxis = -INF;
+    for (int i = 0; i < 3; i++) 
+        if (maxAxis < vertices[i]->getPos().get(axis))
+            maxAxis = vertices[i]->getPos().get(axis);
+    return maxAxis;
+}

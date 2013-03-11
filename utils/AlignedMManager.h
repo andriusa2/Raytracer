@@ -10,6 +10,7 @@ public:
     AlignedMManager(int preload = 100000);
     KdTreeNode * getKdNode();
     ObjList * getObjListNode();
+    ObjList * getObjListNodes(int amount);
     // make sure that all references are dead before using this...
     void reset();
 private:

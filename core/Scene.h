@@ -7,6 +7,7 @@
 #include "../utils/ObjLoader.h"
 #include "../primitives/Triangle.h"
 #include "../core/Camera.h"
+#include "../accel/KdTree.h"
 class Scene {
 public:
     Scene(Config& config);
@@ -16,11 +17,13 @@ public:
     ~Scene();
     Vector3D accumulateLight(Ray& ray, Vector3D & normal);
     Camera * getCamera();
+    KdTree & getTree() {return tree;}
 private:
     void reset();
     std::vector<Triangle*> triangles;
     std::vector<Triangle*> lights;
     std::vector<Material*> materials;
+    KdTree tree;
     Camera cam;
 };
 

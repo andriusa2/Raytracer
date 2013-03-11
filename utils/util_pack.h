@@ -3,6 +3,7 @@
 #define UTIL_PACK_H
 
 #include <ostream>
+#include <omp.h>
 
 #include "./constants.h"
 #include "./Logger.h"

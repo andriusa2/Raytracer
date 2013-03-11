@@ -4,5 +4,6 @@
 #include "./Integrator.h"
 #include "./RayCaster.h"
 #include "./DebugRayCaster.h"
+#include "./KdDebugRayCaster.h"
 
 #endif

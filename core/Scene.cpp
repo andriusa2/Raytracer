@@ -3,6 +3,7 @@
 Scene::Scene(Config& config) {
     LogDefault->criticalOutValue("ScenePath", config.getStringByName("scene"));
     loadScene(config.getStringByName("scene").c_str());
+    tree.Load(triangles);
 }
 
 Scene::~Scene() {
@@ -23,7 +24,8 @@ void Scene::reset() {
 Triangle* Scene::intersect(Ray& ray, float& dist) {
     dist = INF;
     Triangle * retval = 0;
-
+    return tree.intersect(ray,dist);
+    /*
     for (std::vector<Triangle*>::iterator it = triangles.begin();
         it != triangles.end(); it++) {
             float tmpDist = INF;
@@ -34,12 +36,14 @@ Triangle* Scene::intersect(Ray& ray, float& dist) {
                 }
             }
     }
-    return retval;
+    return retval;*/
 }
 
 Triangle* Scene::intersect(Ray& ray, float& dist, float& u, float& v) {
     dist = INF;
     Triangle * retval = 0;
+    return tree.intersect(ray,dist,u,v);
+    /*
     float tmpu = 0;
     float tmpv = 0;
     for (std::vector<Triangle*>::iterator it = triangles.begin();
@@ -55,7 +59,7 @@ Triangle* Scene::intersect(Ray& ray, float& dist, float& u, float& v) {
             }
     }
     return retval;
-
+    */
 }
 
 

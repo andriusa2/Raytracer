@@ -84,6 +84,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine
     buffer = new unsigned int[SCRWIDTH * SCRHEIGHT];
     Engine engine(
         //new DebugRayCaster(config, DebugRayCaster::getNorm),
+        //new KdDebugRayCaster(config),
         new RayCaster(config),
         config);
 	//prepare output

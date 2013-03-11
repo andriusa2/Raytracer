@@ -32,6 +32,9 @@
     <Filter Include="packs">
       <UniqueIdentifier>{af65863d-9053-40c4-ad6a-1d3ec4db8a8a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="accel">
+      <UniqueIdentifier>{9881f953-35e6-42aa-a8e9-352c06248814}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\dSFMT.h">
@@ -106,6 +109,27 @@
     <ClInclude Include="materials\material_pack.h">
       <Filter>packs</Filter>
     </ClInclude>
+    <ClInclude Include="accel\KdTree.h">
+      <Filter>accel</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\AlignedMManager.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="accel\KdTree\KdTreeNode.h">
+      <Filter>accel</Filter>
+    </ClInclude>
+    <ClInclude Include="accel\ObjList.h">
+      <Filter>accel</Filter>
+    </ClInclude>
+    <ClInclude Include="accel\KdTree\KdHelperList.h">
+      <Filter>accel</Filter>
+    </ClInclude>
+    <ClInclude Include="primitives\AABB.h">
+      <Filter>primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="core\KdDebugRayCaster.h">
+      <Filter>integrators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -142,6 +166,21 @@
       <Filter>integrators</Filter>
     </ClCompile>
     <ClCompile Include="core\DebugRayCaster.cpp">
+      <Filter>integrators</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\AlignedMManager.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="accel\KdTree.cpp">
+      <Filter>accel</Filter>
+    </ClCompile>
+    <ClCompile Include="accel\KdTree\KdTreeNode.cpp">
+      <Filter>accel</Filter>
+    </ClCompile>
+    <ClCompile Include="accel\ObjList.cpp">
+      <Filter>accel</Filter>
+    </ClCompile>
+    <ClCompile Include="core\KdDebugRayCaster.cpp">
       <Filter>integrators</Filter>
     </ClCompile>
   </ItemGroup>

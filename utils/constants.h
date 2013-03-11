@@ -17,7 +17,9 @@ const Vector3D V3D_BLANK(0,0,0);
 const Vector3D V3D_WHITE(1,1,1);
 const Vector3D V3D_GREEN(0,1,0);
 const unsigned int MOD3_ACCEL[] = {0,1,2,0,1,2,0};
-
+const int MAX_KD_DEPTH = 20;
+const float KDCINTR	= 0.5f;
+const float KDCTRAV = 0.1f;
 extern dsfmt_t* __dsfmt_sz; // should be explicitly initialized somewhere
 
 #define GET_RND(id) dsfmt_genrand_close_open(__dsfmt_sz + id)
