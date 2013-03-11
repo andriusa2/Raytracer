@@ -99,7 +99,7 @@ unsigned int KdTree::calcTriangles(KdHelperList * head, int axis,
         // __ALL__ object starts should be on the head!
         if (!tmp->read) {
             retval++;
-            tmp->otherSide->read = false;
+            tmp->otherSide->read = true;
         }
     }
     for (KdHelperList * tmp = head;
@@ -125,7 +125,7 @@ void KdTree::addTriangles(KdHelperList * head, int axis,
             (objs+i)->setNext(0);
             if (i) (objs+i-1)->setNext(objs+i);
             i++;
-            tmp->otherSide->read = false;
+            tmp->otherSide->read = true;
         }
     }
     for (KdHelperList * tmp = head;
@@ -199,6 +199,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         node->setLeaf(true);
         ObjList * head = mManager.getObjListNodes(calcTriangles(heads[0], 0, 0, KdTree::testAll));
         addTriangles(heads[0], 0, head, 0, KdTree::testAll);
+        LogDefault->criticalOutValue("MadeIntLeaf, objects", calcTriangles(heads[0],0,0,KdTree::testAll));
         node->setObjList(head);
         return ;
     }
@@ -260,6 +261,10 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         if (curr_r) curr_r->next[i] = 0;
 
     }
+    n_left_end/=3;
+    n_left_start/=3;
+    n_right_start/=3;
+    n_right_end/=3;
     int n_left = n_left_start+openL;
     int n_right = n_right_end;
     int n_left_s = openL + n_left_start - n_left_end;
@@ -277,7 +282,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         else {
             ObjList * head = mManager.getObjListNodes(n_left_in);
             addTriangles(l_heads[minAxis], minAxis, head, bestPos, KdTree::testLeft);
-
+            LogDefault->criticalOutValue("MadeleftLeaf, objects", n_left_in);
             node->getLeft()->setObjList(head);
         }
     }
@@ -292,6 +297,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         else {
             ObjList * head = mManager.getObjListNodes(n_right_in);
             addTriangles(r_heads[minAxis], minAxis, head, bestPos, KdTree::testRight);
+            LogDefault->criticalOutValue("MaderightLeaf, objects", n_right_in);
             node->getRight()->setObjList(head);
         }
     }
