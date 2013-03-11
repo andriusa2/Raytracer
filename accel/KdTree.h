@@ -26,7 +26,7 @@ public:
 
     Triangle * intersect(Ray& ray, float& dist, float& u, float& v);
     Triangle * intersect(Ray& ray, float& dist);
-    int debugIntersect(Ray& ray, float &dist);
+    Triangle * debugIntersect(Ray& ray, float &dist);
     void DumpTree();
 private:
     void DumpNode(KdTreeNode * node);
@@ -37,7 +37,7 @@ private:
         float splitpos, fpKHListTest test);
     void addTriangles(KdHelperList * head, int axis,
         ObjList * objs, float splitpos, fpKHListTest test);
-
+    Triangle * recursiveIntersection(Ray ray, float & dist, KdTreeNode * node, AABB box);
     static bool testLeft(float head, float spos) { return head <= spos;}
     static bool testRight(float head, float spos) {return head > spos;}
     static bool testAll(float head, float spos) {return true;}

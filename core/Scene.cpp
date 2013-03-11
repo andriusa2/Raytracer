@@ -24,6 +24,7 @@ void Scene::reset() {
 Triangle* Scene::intersect(Ray& ray, float& dist) {
     dist = INF;
     Triangle * retval = 0;
+    return tree.debugIntersect(ray,dist);
     return tree.intersect(ray,dist);
     /*
     for (std::vector<Triangle*>::iterator it = triangles.begin();

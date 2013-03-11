@@ -121,7 +121,7 @@ void KdTree::addTriangles(KdHelperList * head, int axis,
         if (!test(tmp->data[axis], spos)) continue;
         // __ALL__ object starts should be on the head!
         if (!tmp->read) {
-            (objs+i)->setTriangle(head->tri);
+            (objs+i)->setTriangle(tmp->tri);
             (objs+i)->setNext(0);
             if (i) (objs+i-1)->setNext(objs+i);
             i++;
@@ -282,7 +282,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         else {
             ObjList * head = mManager.getObjListNodes(n_left_in);
             addTriangles(l_heads[minAxis], minAxis, head, bestPos, KdTree::testLeft);
-            LogDefault->criticalOutValue("MadeleftLeaf, objects", n_left_in);
+            LogDefault->criticalOutValue("MadeLeftLeaf, objects", n_left_in);
             node->getLeft()->setObjList(head);
         }
     }
@@ -297,7 +297,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         else {
             ObjList * head = mManager.getObjListNodes(n_right_in);
             addTriangles(r_heads[minAxis], minAxis, head, bestPos, KdTree::testRight);
-            LogDefault->criticalOutValue("MaderightLeaf, objects", n_right_in);
+            LogDefault->criticalOutValue("MadeRightLeaf, objects", n_right_in);
             node->getRight()->setObjList(head);
         }
     }
@@ -515,6 +515,58 @@ void KdTree::DumpNode(KdTreeNode * node) {
     if (!node->isLeaf()){DumpNode(node->getLeft());
     DumpNode(node->getRight());}
 }
-int KdTree::debugIntersect(Ray & ray, float & dist) {
-    return 0;
+Triangle* KdTree::debugIntersect(Ray & ray, float & dist) {
+    //return intersect(ray, dist);
+
+    return recursiveIntersection(ray, dist, root, scene_bound);
+}
+
+Triangle * KdTree::recursiveIntersection(Ray ray, float & dist, KdTreeNode * node, AABB box) {
+    Triangle * retval = 0;
+    if (node->isLeaf()){
+        ObjList * head = node->getObjList();
+        while (head) {
+            Triangle * tri = head->getTriangle();
+            int result;
+            float d=dist;;
+            if (result = tri->intersect(ray, d)) {
+                retval = tri;
+                dist = d;
+            }
+            head = head->getNext();
+        }
+        return retval;
+    }
+    else {
+        AABB left = box;
+        AABB right = box;
+        left.right[node->getAxis()] = node->getSplitPos();
+        right.left[node->getAxis()] = node->getSplitPos();
+        if (ray.direction[node->getAxis()] == 0) {
+            if (ray.origin[node->getAxis()] <= node->getSplitPos())
+                return recursiveIntersection(ray, dist, node->getLeft(), left);
+            else return recursiveIntersection(ray, dist, node->getRight(), right);
+        }
+        float distToSpos = node->getSplitPos() - ray.origin[node->getAxis()];
+        distToSpos /= ray.direction[node->getAxis()];
+        Vector3D poi = ray.origin + distToSpos * ray.direction;
+        if (box.Contains(poi) && distToSpos >= 0) {
+            if (ray.origin[node->getAxis()] <= node->getSplitPos()) {
+                retval = recursiveIntersection(ray, dist, node->getLeft(), left);
+                if (retval) return retval;
+                return recursiveIntersection(ray, dist, node->getRight(), right);
+            }
+            else {
+                
+                retval = recursiveIntersection(ray, dist, node->getRight(), right);
+                if (retval) return retval;
+                return recursiveIntersection(ray, dist, node->getLeft(), left);
+            }
+        }
+        else {
+            if (ray.origin[node->getAxis()] <= node->getSplitPos())
+                return recursiveIntersection(ray, dist, node->getLeft(), left);
+            else return recursiveIntersection(ray, dist, node->getRight(), right);
+        }
+    }
 }

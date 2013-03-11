@@ -21,7 +21,7 @@ void RayCaster::linkScene(Scene * myscene) {
 void RayCaster::render(unsigned int * buffer) {
     Ray ray;
     omp_set_num_threads(7);
-#pragma omp parallel for schedule(dynamic) private(ray)
+//#pragma omp parallel for schedule(dynamic) private(ray)
     for (int y = 0; y < scrHeight; y++)
         for (int x = 0; x < scrWidth; x++) {
             ray.origin = cam->getPos();

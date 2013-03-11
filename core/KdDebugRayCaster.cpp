@@ -32,7 +32,7 @@ Vector3D KdDebugRayCaster::trace(Ray & ray, int depth, float rho) {
     if (depth == maxDepth) return V3D_BLANK;
 
     float dist = INF;
-    int tval = scene->getTree().debugIntersect(ray, dist);
+    int tval = (int)scene->getTree().debugIntersect(ray, dist);
     if (!tval) return V3D_BLANK;
     return (float(tval)/30) * V3D_WHITE;
 }
