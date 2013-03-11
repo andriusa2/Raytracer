@@ -4,6 +4,9 @@ KdTree::KdTree() : root(0) {
     mStack = new KdStack*[8];
     for (int i = 0; i < 8; i++)
         mStack[i] = NEW_ALIGNED(KdStack,256,16);
+    sortByAxis[0] = lessAxis<0>;
+    sortByAxis[1] = lessAxis<1>;
+    sortByAxis[2] = lessAxis<2>;
 }
 
 KdTree :: KdTree(vector<Triangle *> & tris) {
@@ -15,7 +18,7 @@ KdTree :: KdTree(vector<Triangle *> & tris) {
 
 void KdTree::Load(vector<Triangle *> & tris) {
     makeTree(tris);
-    DumpTree();
+    //DumpTree();
     LogDefault->flush();
 }
 
@@ -149,10 +152,24 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
     int minAxis = -1;
     float minCost = INF;
     float bestPos = -INF;
+    {
+        int obj_count[3];
+        for (int i = 0; i< 3; i++)
+            obj_count[i] = calcTriangles(heads[i], i,0,KdTree::testAll);
+        if (obj_count[0] != obj_count[1]){
+            LogDefault->criticalOutValue("mismatch[0][1], delta",(obj_count[1]-obj_count[0]));
+        }
+        if (obj_count[0] != obj_count[2]){
+            LogDefault->criticalOutValue("mismatch[0][2], delta",(obj_count[2]-obj_count[0]));
+        }
+        if (obj_count[2] != obj_count[1]){
+            LogDefault->criticalOutValue("mismatch[1][2], delta",(obj_count[2]-obj_count[1]));
+        }
+    }
     for (int axis = 0; axis < 3; axis++) {
         KdHelperList * tmp = heads[axis];
         
-        int n1 = openL, // triangles on the left
+        int n1 = 0, // triangles on the left
             n2 = triangles, // triangles on the right
             n3 = 0, // amount of triangles who will _start_ on the left
                     // after pushing splitpos to the right
@@ -181,7 +198,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
                 float SA1 = lsz[0] * lsz[1] + lsz[0] * lsz[2] + lsz[1] * lsz[2];
                 float SA2 = rsz[0] * rsz[1] + rsz[0] * rsz[2] + rsz[1] * rsz[2];
                 float splitcost =
-                    KDCTRAV + (SA1 * (n1+n4) + SA2 * (n2 - n4)) * SAV * KDCINTR;
+                    KDCTRAV + (SA1 * (n1+n4+n3) + SA2 * (n2 - n4)) * SAV * KDCINTR;
                 if (splitcost < minCost) {
                     minCost = splitcost;
                     bestPos = spos;
@@ -214,9 +231,53 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
      * also calculate how many primitives are on
      * one side or another
      */
-
+    
     KdHelperList * tmp = heads[minAxis];
     list<KdHelperList*> newnodes;
+    while (tmp) {
+        if (tmp->left) {
+            if (tmp->data[minAxis] < bestPos) {
+                if (tmp->otherSide->data[minAxis] > bestPos) {
+                    KdHelperList * left = new KdHelperList;
+                    KdHelperList * right = new KdHelperList;
+                    left->otherSide = tmp;
+                    right->otherSide = tmp->otherSide;
+                    right->left = true;
+                    left->tri = tmp->tri;
+                    right->tri = tmp->tri;
+                    for (int i = 0; i < 3; i++){
+                        left->data[i] = tmp->otherSide->data[i];
+                        right->data[i] = tmp->data[i];
+                    }
+                    left->otherSide->otherSide = left;
+                    right->otherSide->otherSide = right;
+                    left->data[minAxis] = bestPos;
+                    right->data[minAxis] = bestPos + 2 * EPS;
+                    newnodes.push_back(left);
+                    newnodes.push_back(right);
+                }
+            }
+        }
+        tmp = tmp->next[minAxis];
+    }
+    for (int axis = 0; axis < 3; axis++) {
+        newnodes.sort(sortByAxis[axis]);
+        KdHelperList * tmpHead = heads[axis];
+        for (list<KdHelperList *>::iterator it = newnodes.begin();
+            it != newnodes.end(); it++) {
+            if (tmpHead->data[axis] > (*it)->data[axis]) {
+                (*it)->next[axis] = tmpHead;
+                tmpHead = *it;
+                continue;
+            }
+            while (tmpHead->next[axis] && tmpHead->next[axis]->data[axis] <= (*it)->data[axis]) {
+                tmpHead = tmpHead->next[axis];
+            }
+            (*it)->next[axis] = tmpHead->next[axis];
+            tmpHead->next[axis] = (*it);
+            tmpHead = *it;
+        }
+    }
     int n_left_start = 0;
     int n_right_start = 0;
     int n_right_end = 0;
@@ -231,7 +292,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         curr_r = 0;
         KdHelperList * tmp = heads[i];
         while (tmp) {
-            if (tmp->data[minAxis] <= bestPos) { // to left!
+            if (tmp->data[minAxis] <= (bestPos) && tmp->otherSide->data[minAxis] <= (bestPos)) { // to left!
                 if (l_heads[i]) {
                     curr_l->next[i] = tmp;
                     curr_l = tmp;
@@ -399,7 +460,7 @@ Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
         }
         if (retval) return retval;
         entry = exit;
-        currnode = stack[exit].node;
+        currnode = stack[entry].node;
         exit = stack[entry].prev;
     }
     return retval;
@@ -417,18 +478,18 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
     Vector3D &O = ray.getO();
 
     for (int i = 0; i < 3; i++) {
-        if (D.get(i) < EPS) {
+        if (D.get(i) < 0) {
             if (O.get(i) < p1.get(i))
                 return retval;
         }
-        else if (D.get(i) > EPS) {
+        else if (D.get(i) > 0) {
             if (O.get(i) > p2.get(i))
                 return retval;
         }
     }
-
+    /*
     for (int i = 0; i < 3; i++) {
-        float pos = tfar * D.get(i);
+        float pos =tfar * D.get(i);
         if (D.get(i) < 0) {
             if (pos < p1.get(i))
                 tfar = tnear - (tfar - tnear) * (O.get(i) - p1.get(i))/pos;
@@ -442,6 +503,18 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
                 tnear += (tfar - tnear) * (p1.get(i) - O.get(i)) / pos;
         }
         if(tnear > tfar) return retval;
+    }*/
+    for (int i = 0; i < 3; i++) {
+        float t1 = (p1.get(i) - O.get(i))/D.get(i);
+        float t2 = (p2.get(i) - O.get(i))/D.get(i);
+        if (t1 > t2) {
+            float c = t2;
+            t2 = t1;
+            t1 = c;
+        }
+        if (t1 > tnear) tnear = t1;
+        if (t2 < tfar) tfar = t2;
+        if (tnear > tfar) return false;
     }
     int threadID = omp_get_thread_num();
     int entry = 0;
@@ -463,7 +536,7 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
         while (!currnode->isLeaf()) {
             const float & splitPos = currnode->getSplitPos();
             const int & axis = currnode->getAxis();
-            if (stack[entry].pb.get(axis) <= splitPos) {
+            if (stack[entry].pb.get(axis) < splitPos) {
                 currnode = currnode->getLeft();
                 farchild = currnode+1;
                 if (stack[exit].pb.get(axis) < splitPos) continue;
@@ -483,7 +556,7 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
             stack[exit].pb[axis] = splitPos;
         }
         ObjList * head = currnode->getObjList();
-        float d = stack[exit].t;
+        float d = stack[exit].t+EPS;
         while (head) {
             Triangle * tri = head->getTriangle();
             int result;
@@ -495,7 +568,7 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
         }
         if (retval) return retval;
         entry = exit;
-        currnode = stack[entry].node;
+        currnode = stack[exit].node;
         exit = stack[entry].prev;
     }
     return retval;
@@ -509,14 +582,16 @@ void KdTree::DumpNode(KdTreeNode * node) {
     LogDefault->outValue("NodeType[leaf]",node->isLeaf());
     LogDefault->outValue("NodeType[data]",(unsigned int)node->getObjList() + node->getAxis());
     LogDefault->outValue("NodeType[axis]",node->getAxis());
+    LogDefault->outValue("NodeType[spli]", node->getSplitPos());
     if (node->isLeaf()) LogDefault->outValue("NodeObjList", node->getObjList());
     else LogDefault->outValue("NextLeftNode", node->getLeft());
     LogDefault->line();
-    if (!node->isLeaf()){DumpNode(node->getLeft());
-    DumpNode(node->getRight());}
+    if (!node->isLeaf()){
+        LogDefault->line();DumpNode(node->getLeft());LogDefault->line();
+    DumpNode(node->getRight());LogDefault->line();}
 }
 Triangle* KdTree::debugIntersect(Ray & ray, float & dist) {
-    //return intersect(ray, dist);
+    return intersect(ray, dist);
 
     return recursiveIntersection(ray, dist, root, scene_bound);
 }

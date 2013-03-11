@@ -12,7 +12,7 @@ struct KdHelperList {
     KdHelperList * insert(KdHelperList * node, int axis) {
         KdHelperList * retval = this;
         KdHelperList * tmp;
-        for (; retval->next[axis] && retval->next[axis]->data[axis] <= node->data[axis];
+        for (; retval->next[axis] && retval->next[axis]->data[axis] < node->data[axis] + EPS;
             retval = retval->next[axis]);
         tmp = retval;
         retval = retval->next[axis];

@@ -18,6 +18,10 @@ public:
 	int prev, dummy1, dummy2;
 };
 typedef bool (*fpKHListTest)(float, float);
+typedef bool (*fpKHListSort)(KdHelperList *, KdHelperList*);
+template<unsigned int AXIS> bool lessAxis(KdHelperList * a, KdHelperList * b) {
+    return a->data[AXIS] < b->data[AXIS];
+}
 class KdTree{
 public:
     KdTree();
@@ -45,6 +49,7 @@ private:
     KdTreeNode * root;    
     AABB scene_bound;
     KdStack ** mStack;
+    fpKHListSort sortByAxis[3];
 };
 
 

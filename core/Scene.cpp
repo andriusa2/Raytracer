@@ -23,10 +23,9 @@ void Scene::reset() {
 
 Triangle* Scene::intersect(Ray& ray, float& dist) {
     dist = INF;
-    Triangle * retval = 0;
-    return tree.debugIntersect(ray,dist);
     return tree.intersect(ray,dist);
     /*
+     Triangle * retval = 0;
     for (std::vector<Triangle*>::iterator it = triangles.begin();
         it != triangles.end(); it++) {
             float tmpDist = INF;
@@ -42,9 +41,10 @@ Triangle* Scene::intersect(Ray& ray, float& dist) {
 
 Triangle* Scene::intersect(Ray& ray, float& dist, float& u, float& v) {
     dist = INF;
-    Triangle * retval = 0;
+   
     return tree.intersect(ray,dist,u,v);
     /*
+     Triangle * retval = 0;
     float tmpu = 0;
     float tmpv = 0;
     for (std::vector<Triangle*>::iterator it = triangles.begin();
