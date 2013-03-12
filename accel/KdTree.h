@@ -48,6 +48,7 @@ private:
     void resetAll();
     KdTreeNode * root;    
     AABB scene_bound;
+    int MAX_KD_DEPTH;
     KdStack ** mStack;
     fpKHListSort sortByAxis[3];
 };

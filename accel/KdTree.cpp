@@ -52,6 +52,7 @@ void KdTree::makeTree(vector<Triangle *> & tris) {
     KdHelperList * heads[3] = {};
     int helpID = 0;
     AABB scene(Vector3D(+INF,+INF,+INF), Vector3D(-INF,-INF,-INF));
+    MAX_KD_DEPTH = 5.0f + 1.8f * logf(float(tris.size())) + 0.9f;
     for (vector<Triangle *>::iterator it = tris.begin();
         it != tris.end(); it++) {
         for (int i = 0; i < 3; i++) {
@@ -155,20 +156,6 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
     int minAxis = -1;
     float minCost = INF;
     float bestPos = -INF;
-    {
-        int obj_count[3];
-        for (int i = 0; i< 3; i++)
-            obj_count[i] = calcTriangles(heads[i], i,0,KdTree::testAll);
-        if (obj_count[0] != obj_count[1]){
-            LogDefault->criticalOutValue("mismatch[0][1], delta",(obj_count[1]-obj_count[0]));
-        }
-        if (obj_count[0] != obj_count[2]){
-            LogDefault->criticalOutValue("mismatch[0][2], delta",(obj_count[2]-obj_count[0]));
-        }
-        if (obj_count[2] != obj_count[1]){
-            LogDefault->criticalOutValue("mismatch[1][2], delta",(obj_count[2]-obj_count[1]));
-        }
-    }
     for (int axis = 0; axis < 3; axis++) {
         KdHelperList * tmp = heads[axis];
         
