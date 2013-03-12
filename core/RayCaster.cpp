@@ -63,7 +63,9 @@ Vector3D RayCaster::trace(Ray & ray, int depth, float & dist, float rho) {
 
     Triangle * prim;
     dist = 0;
-    prim = scene->intersect(ray, dist);
+    float u;
+    float v;
+    prim = scene->intersect(ray, dist, u, v);
     if (!prim) return V3D_BLANK;
     
     if (prim->getMat()->isEmitter()) {
@@ -73,5 +75,5 @@ Vector3D RayCaster::trace(Ray & ray, int depth, float & dist, float rho) {
     ray.direction = -ray.direction;
 
     return prim->getMat()->getColor() *
-        scene->accumulateLight(ray, prim->getNormal());
+        scene->accumulateLight(ray, prim->getNormal(u, v));
 }

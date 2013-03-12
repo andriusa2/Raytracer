@@ -35,12 +35,14 @@ int Triangle::intersect(Ray& ray, float& dist, float& u, float& v) const {
 	const float beta=hu*cnu+hv*cnv;
 	if(beta<0) return MISS;
 	if((alpha+beta)>1)return MISS;
-	u = vertices[0]->getU() * (1 - alpha - beta) +
+	/*u = vertices[0]->getU() * (1 - alpha - beta) +
         vertices[1]->getU() * alpha +
         vertices[2]->getU() * beta;
 	v = vertices[0]->getV() * (1 - alpha - beta) +
         vertices[1]->getV() * alpha +
-        vertices[2]->getV() * beta;
+        vertices[2]->getV() * beta;*/
+    u = alpha;
+    v = beta;
 	dist=t;
 	return HIT;
 }
@@ -70,7 +72,9 @@ Vector3D Triangle::getNormal() const {
 }
 
 Vector3D Triangle::getNormal(const float& u, const float& v) const {
-    return getNormal();
+    Vector3D retval = vertices[0]->getNormal() * (1.0f - u - v) + vertices[1]->getNormal()*u + vertices[2]->getNormal()*v;
+    retval.normalize();
+    return retval;
 }
 
 Vertex* Triangle::getVertex(int ID) const {
