@@ -45,7 +45,7 @@ std::ostream& operator<< (std::ostream &out, const Camera & cam) {
 }
 // hwr => height/width
 void Camera::getDirection(Ray & ray, float x, float y, float whr) {
-    ray.direction = front + (x - 0.5f) * 2.f * right + (0.5f - y) * 2.f *whr* up;
+    ray.direction = front + (x - 0.5f) * (2.2f/whr) * right + (0.5f - y) * 2.2f * up;
     //LogDefault->outValue("|ray.direction|",ray.direction.length());
     ray.direction.normalize();
 }
