@@ -2,6 +2,8 @@
 
 Camera::Camera() {
     speed = DEFCAMSPEED;
+    cx = -1;
+    cy = -1;
     inv = false;
     set(V3D_BLANK, Vector3D(0,0,1), Vector3D(0,1,0));
     LogDefault->outValue("IntializedCamera",*this);
@@ -11,6 +13,8 @@ Camera::Camera(const Vector3D & pos,
         const Vector3D & lookAt,
         const Vector3D & top) {
     speed = DEFCAMSPEED;
+    cx = -1;
+    cy = -1;
     inv = false;
     set(pos, lookAt, top);
 }
@@ -22,6 +26,8 @@ Camera::Camera(const Vector3D & pos,
 up(u), position(pos), right(r), front(f), speed(DEFCAMSPEED)
 {
     inv = false;
+    cx = -1;
+    cy = -1;
     fixDirs();
 }
 
@@ -99,7 +105,7 @@ void Camera::turn(float xz, float yz) {
     front = Quaternion::rotate(right, front, yz);
     up = Quaternion::rotate(right, up, yz);
     fixDirs();
-
+    inv = true;
 }
 
 void Camera::fixDirs() {
@@ -108,4 +114,33 @@ void Camera::fixDirs() {
     up = front.cross(right);
     up.normalize();
     front.normalize();
+}
+
+
+
+void Camera::mouseTo(float nx, float ny) {
+    if (cx < 0) {
+        cx = nx;
+        cy = ny;
+    }
+    float dx = nx - cx;
+    float dy = ny - cy;
+    dx *= PI/3;
+    dy *= PI/3;
+    if (traceMouse) 
+        turn (dx, dy);
+    cx = nx;
+    cy = ny;
+}
+void Camera::parseKey(unsigned int vkey) {
+    switch (vkey) {
+	case 0x44: go(RIGHT);return;//d
+	case 0x41: go(LEFT); return;//a
+	case 0x53: go(BACK); return;//s
+	case 0x57: go(FRONT); return;//w
+    case 0x45: traceMouse = !traceMouse; return;
+    case 0xBB: changeSpeed(1); return; //+
+    case 0xBD: changeSpeed(-1); return; //-
+
+    }
 }

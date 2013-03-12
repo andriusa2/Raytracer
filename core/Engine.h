@@ -8,6 +8,7 @@ class Engine {
 public:
     Engine(Integrator * integrator, Config& config);
     void trace(unsigned int buffer[]);
+    Scene * getScene();
 private:
     Integrator * integrator;
     Scene * scene;

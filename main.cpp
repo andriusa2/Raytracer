@@ -4,6 +4,7 @@
 #include "./core/core_pack.h"
 #include "./core/integrator_pack.h"
 #include "./utils/Config.h"
+#include "./core/Camera.h"
 
 static WNDCLASS wc;
 static HWND wnd;
@@ -13,7 +14,7 @@ HDC window_hdc;
 unsigned int * buffer = 0;
 int SCRWIDTH;
 int SCRHEIGHT;
-
+Camera * cam = 0;
 void DrawWindow();
 
 static LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
@@ -26,15 +27,22 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		StretchDIBits( window_hdc, 0, 0, SCRWIDTH, SCRHEIGHT, 0, 0, SCRWIDTH, SCRHEIGHT, buffer, bh, DIB_RGB_COLORS, SRCCOPY );
 		ValidateRect( wnd, NULL );
 		break;
+    case WM_MOUSEMOVE: 
+        if (cam) 
+            cam->mouseTo(float(LOWORD(lParam))/SCRWIDTH, float(HIWORD(lParam))/SCRHEIGHT);
+        break;
 	case WM_KEYDOWN:
 		switch(wParam & 0xFF){
 		case 27: break;//esc
-		default: return 0;
+		default: 
+            if (cam) 
+                cam->parseKey(wParam & 0xFF);
+            return 0;
 		};
 	case WM_CLOSE:
 		ReleaseDC( wnd, window_hdc );
 		DestroyWindow( wnd );
-		SystemParametersInfo( SPI_SETSCREENSAVEACTIVE, 1, 0, 0 );
+		//SystemParametersInfo( SPI_SETSCREENSAVEACTIVE, 1, 0, 0 );
 		ExitProcess( 0 );
 		break;
 	default:
@@ -52,6 +60,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine
 
 	SCRWIDTH=config.getIntByName("width");
 	SCRHEIGHT=config.getIntByName("height");
+
 	wc.style = CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
 	wc.lpfnWndProc = WndProc;
 	wc.cbClsExtra = wc.cbWndExtra = 0;
@@ -80,13 +89,14 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine
 	((unsigned long*)bh->bmiColors)[1] = 255 << 8;
 	((unsigned long*)bh->bmiColors)[2] = 255;
 	window_hdc = GetDC(wnd);
-	SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, 0, 0, 0);
+	//SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, 0, 0, 0);
     buffer = new unsigned int[SCRWIDTH * SCRHEIGHT];
     Engine engine(
         //new DebugRayCaster(config, DebugRayCaster::getNorm),
         //new KdDebugRayCaster(config),
         new RayCaster(config),
         config);
+    cam = engine.getScene()->getCamera();
 	//prepare output
 	DrawWindow();
 	while (1)

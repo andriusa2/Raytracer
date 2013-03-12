@@ -17,4 +17,8 @@ void Engine::trace(unsigned int buffer[]) {
     LogDefault->criticalOutValue("Rendering took",GetTickCount()-start);
 }
 
+Scene * Engine::getScene() {
+    return scene;
+}
+
 dsfmt_t* __dsfmt_sz;

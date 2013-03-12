@@ -30,18 +30,24 @@ public:
         const Vector3D & f);
     void getDirection(Ray & ray, float x, float y, float whr);
     Vector3D getPos();
+    bool invalidate();
+    
+    void mouseTo(float nx, float ny);
+    void parseKey(unsigned int vkey);
+    friend std::ostream& operator<< (std::ostream &out, const Camera & cam);
+private:
+    void fixDirs();
     void go(int mask);
     /* turn by xz radians in the front x right panel
     * turn by yz radians in the front x top panel
     */
     void turn(float xz, float yz);
     void changeSpeed(int augment);
-    bool invalidate();
-    friend std::ostream& operator<< (std::ostream &out, const Camera & cam);
-private:
-    void fixDirs();
     float speed;
+    float cx;
+    float cy;
     bool inv;
+    bool traceMouse;
     Vector3D up;
     Vector3D right;
     Vector3D front;
