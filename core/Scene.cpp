@@ -98,120 +98,23 @@ void Scene::loadScene(const char filename[]) {
         return;
     }
 
-    char cmd = 0;
-    char cmd1 = 0;
-    Vector3D arg0;
-    Vector3D arg1;
-    Vector3D arg2;
-    float argf0;
-    string buf0, buf1;
-    bool argb0 = false;
+    char cmd[256];
     map <string, Material*> mats;
-    while (in >> cmd) {
-        
+    while (in >> cmd) {   
         in.ignore(256,'\n');
-        switch(cmd) {
-        case 'c': // camera
-            while ((in >> cmd1)) {
-                if (cmd1 == '}') break;
-                if (cmd1 == 'p') {
-                    in.ignore(256,' ');
-                    in >> arg0;
-                }
-                if (cmd1 == 'l') {
-                    in.ignore(256, ' ');
-                    in >> arg1;
-                }
-                if (cmd1 == 't') {
-                    in.ignore(256, ' ');
-                    in >> arg2;
-                }
-                in.ignore(256,'\n');
-            }
-            cam.set(arg0, arg1, arg2);
-            break;
-        case 'm': // material
-            argb0 = false;
-            while ((in >> cmd1)) {
-                if (cmd1 == '}') break;
-                if (cmd1 == 'n') {
-                    in.ignore(256, ' ');
-                    in >> buf0;
-                }
-                if (cmd1 == 'c') {
-                    in.ignore(256, ' ');
-                    in >> arg0;
-                }
-                if (cmd1 == 'e') {
-                    argb0 = true;
-                }
-                in.ignore(256,'\n');
-            }
-            materials.push_back(new Material(Material::LAMB, arg0, argb0));
-            mats[buf0] = materials.back();
-            break;
-        case 'o': // object
-            arg1 = V3D_BLANK;
-            arg0 = V3D_BLANK;
-            argb0 = false;
-            while (in >> cmd1) {
-                if(cmd1 == '}') break;
-                if (cmd1 == 'f') {
-                    in.ignore(256,' ');
-                    in >> buf0;
-                }
-                if (cmd1 == 'm') {
-                    in.ignore(256,' ');
-                    in >> buf1;
-                }
-                if (cmd1 == 'p') {
-                    in.ignore(256,' ');
-                    in>>arg0;
-                }
-                if (cmd1 == 's') {
-                    
-                    argb0=true;
-                }
-                if (cmd1 == 'r') {
-                    in.ignore(256, ' ');
-                    in >> arg1;
-                }
-                in.ignore(256,'\n');
-            }
-            LogDefault->criticalOutValue("LoadObjFile",buf0);
-            ObjLoader::Load(buf0.c_str(),triangles,materials,mats[buf1],arg0, arg1, argb0);
-            break;
-        case 't' :
-            while (in >> cmd1) {
-                if (cmd1 == '}') break;
-                if (cmd1 == '0') {
-                    in >> arg0;
-                }
-                if (cmd1 == '1') {
-                    in >> arg1;
-                }
-                if (cmd1 == '2') {
-                    in >> arg2;
-                }
-                if (cmd1 == 'm') {
-                    in.ignore(256, ' ');
-                    in >> buf0;
-                }
-            }
-            triangles.push_back(new Triangle (
-                new Vertex(arg0),
-                new Vertex(arg1),
-                new Vertex(arg2)));
-            triangles.back()->setMat(mats[buf0]);
-        default:
-            in.ignore(256,'\n');
-        }
+        if (strcmp(cmd,"camera") == 0) 
+            LoadCamera(in);
+        else if (strcmp(cmd, "material") == 0)
+            LoadMaterial(in, mats);
+        else if (strcmp(cmd, "triangle") == 0)
+            LoadTriangle(in, mats);
+        else if (strcmp(cmd, "object") == 0)
+            LoadObject(in, mats);
     }
     for (vector<Triangle*>::iterator it = triangles.begin();
         it != triangles.end(); it++) {
             if ((*it)->getMat()->isEmitter()) {
                 lights.push_back(*it);
-                LogDefault->outValue("emitter",*it);
             }
             (*it)->normalize();
     }
@@ -220,4 +123,152 @@ void Scene::loadScene(const char filename[]) {
 
 Camera * Scene::getCamera() {
     return &cam;
+}
+
+void Scene::LoadCamera(istream & in) {
+    // there are two ways to load a camera
+    // either by using lookat container
+    // or just supplying all the components
+    char cmd[256];
+    map<string, Vector3D> args;
+    // not a very safe way to do this, as some arguments
+    // might be presented in wrong way
+    args["up"] = V3D_POINT[1];
+    args["front"] = V3D_POINT[2];
+    args["right"] = V3D_POINT[0];
+    while (in >> cmd) {
+        if (cmd[0] == '}') {
+            in.ignore(256,'\n');
+            break;
+        }
+        else if (cmd[0] == '#') {
+            in.ignore(256,'\n');
+            continue;
+        }
+        in >> args[cmd];
+        in.ignore(256,'\n');
+    }
+    if (args.count("lookat")) //lookAt camera
+        cam.set(args["pos"],args["lookat"], args["up"]);
+    else cam.set(args["pos"], args["up"], args["right"], args["front"]);
+}
+
+void Scene::LoadMaterial(istream & in, map<string, Material*> & mats) {
+    char cmd[256];
+    Material * mat = new Material;
+    materials.push_back(mat);
+    Vector3D tmpV;
+    while (in >> cmd) {
+        if (cmd[0] == '}') {
+            in.ignore(256,'\n');
+            return;
+        }
+        else if (cmd[0] == '#') {
+            in.ignore(256,'\n');
+            continue;
+        }
+        if (strcmp(cmd,"emitter") == 0) {
+            mat->setEmitter(true);
+        }
+        else if (strcmp(cmd, "Kd") == 0) {
+            in >> tmpV;
+            mat->setDifColor(tmpV);
+        }
+        else if (strcmp(cmd, "Ks") == 0) {
+            in >> tmpV;
+            // mat->SetSpecColor(tmpV);
+        }
+        else if (strcmp(cmd, "name") == 0) {
+            in >> cmd;
+            mats[cmd] = mat;
+        }
+        else if (strcmp(cmd, "Ns") == 0) {
+            in >> tmpV[0];
+            // mat->setN(tmpV[0]);
+        }
+        else if (strcmp(cmd, "Ni") == 0) {
+            in >> tmpV[0];
+            // mat->setRho(tmpV[0]);
+        }
+        in.ignore(256,'\n');
+    }
+}
+
+void Scene::LoadTriangle(istream & in, map<string, Material *> &mats) {
+    char cmd[256];
+    Material * mat = 0;
+    vector<Vector3D> vs;
+    Vector3D tmp;
+    while (in >> cmd) {
+        if (cmd[0] == '}') {
+            in.ignore(256,'\n');
+            break;
+        }
+        else if (cmd[0] == '#') {
+            in.ignore(256,'\n');
+            continue;
+        }
+        if (strcmp(cmd, "material") == 0) {
+            in >> cmd;
+            mat = getMaterial(cmd, mats);
+        }
+        else{ // should all be only vectors
+            in >> tmp;
+            vs.push_back(tmp);
+        }
+        in.ignore(256, '\n');
+    }
+    if (vs.size() >= 3) {
+        triangles.push_back(new Triangle(
+            new Vertex(vs[0]),
+            new Vertex(vs[1]),
+            new Vertex(vs[2])));
+        triangles.back()->setMat(mat);
+    }
+    else LogDefault->outStringN("Failed to load triangle");
+}
+
+void Scene::LoadObject(istream & in, map<string, Material *> &mats) {
+    map<string, Vector3D> args;
+    args["scale"] = V3D_BLANK;
+    args["angle"] = V3D_BLANK;
+    args["pos"] = V3D_BLANK;
+    char filename[256];
+    bool smoothNormals = false;
+    Material * defMat = 0;
+
+    char cmd[256];
+    while (in >> cmd) {
+        if (cmd[0] == '}') {
+            in.ignore(256,'\n');
+            break;
+        }
+        else if (cmd[0] == '#') {
+            in.ignore(256,'\n');
+            continue;
+        }
+        if (strcmp(cmd, "file") == 0) {
+            in >> filename;
+        }
+        else if (strcmp(cmd, "material") == 0) {
+            in >> cmd;
+            defMat = getMaterial(cmd, mats);
+        }
+        else if (strcmp(cmd, "smoothNormals") == 0) {
+            smoothNormals = true;
+        }
+        else {
+            in >> args[cmd];
+        }
+        in.ignore(256,'\n');
+    }
+    args["rotate"].degToRad();
+    ObjLoader::Load(filename, triangles, materials, defMat,
+        args["pos"], args["scale"], args["rotate"], smoothNormals);
+}
+
+Material * Scene::getMaterial(const string & name, map<string, Material*> & mats) {
+    if (mats.count(name))
+        return mats[name];
+    return 0;
 }

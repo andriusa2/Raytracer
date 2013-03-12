@@ -2,6 +2,7 @@
 #define SCENE_H
 
 #include <vector>
+#include <fstream>
 #include "../utils/util_pack.h"
 #include "../utils/Config.h"
 #include "../utils/ObjLoader.h"
@@ -19,6 +20,11 @@ public:
     Camera * getCamera();
     KdTree & getTree() {return tree;}
 private:
+    void LoadCamera(istream & in);
+    void LoadMaterial(istream & in, map<string, Material*> &mats);
+    void LoadTriangle(istream & in, map<string, Material*> &mats);
+    void LoadObject(istream & in, map<string, Material*> &mats);
+    Material * getMaterial(const string & name, map<string, Material*> &mats);
     void reset();
     std::vector<Triangle*> triangles;
     std::vector<Triangle*> lights;

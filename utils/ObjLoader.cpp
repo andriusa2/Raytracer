@@ -5,15 +5,15 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
                      vector<Material*> & materials, Material* defMaterial,
                      Vector3D & pos,
                      Vector3D & scale,
+                     Vector3D & rotate,
                      bool smoothNormals) {
     LogDefault->line();
     LogDefault->outString("Loading object ./");
     LogDefault->outStringN(filename);
     LogDefault->outValue("Position", pos);
     LogDefault->outValue("scale", scale);
+    LogDefault->outValue("rotate",rotate);
     LogDefault->outValue("smooth", smoothNormals);
-
-    // the file loads, awesome!
 
     vector<Vertex*> vs;
     vector<Vector3D> vn;
@@ -30,33 +30,45 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
     Vector3D minVertex = V3D_BLANK;
     {
         
-    ifstream obj(filename);
-    if (!obj.good()) {
-        LogDefault->outStringN("Loading failed, aborting");
-        LogDefault->line();
-        return;
-    }
-    while (obj >> cmd) {
-        if(strcmp(cmd, "v") == 0) { //vertex
-            obj >> tmpVect;
+        ifstream obj(filename);
+        if (!obj.good()) {
+            LogDefault->outStringN("Loading failed, aborting");
+            LogDefault->line();
+            return;
+        }
+    
+        // the file loads, awesome!
+
+        while (obj >> cmd) {
+            if(strcmp(cmd, "v") == 0) { //vertex
+                obj >> tmpVect;
+                minVertex += tmpVect;
+                vs.push_back(
+                    new Vertex(tmpVect)
+                );
+            }
+            else if (strcmp(cmd, "vn") == 0) {
+                obj >> tmpVect;
+                vn.push_back(tmpVect);
+            }
+            obj.ignore(256,'\n');
+        }
+        minVertex /= vs.size()-1;
+        //minVertex -= pos;
+        LogDefault->criticalOutValue("avgVertex",minVertex);
+        for (int i = vs.size()-1; i > 0; i--){
+            // reset to 0;0 origin (center of model)
+            vs[i]->setPos(vs[i]->getPos() - minVertex);
+            // scale it a little bit
             if (wantScaling)
-                tmpVect *= scale;
-            minVertex += tmpVect;
-            vs.push_back(
-                new Vertex(tmpVect)
-            );
+                vs[i]->setPos(vs[i]->getPos() * scale);
+            // rotate it around all the axes
+            for (int axis = 0; axis < 3; axis++)
+                vs[i]->setPos(Quaternion::rotate(V3D_POINT[axis],
+                vs[i]->getPos(), rotate[axis]));
+            // move the origin to `pos`
+            vs[i]->setPos(vs[i]->getPos() + pos);
         }
-        else if (strcmp(cmd, "vn") == 0) {
-            obj >> tmpVect;
-            vn.push_back(tmpVect);
-        }
-        obj.ignore(256,'\n');
-    }
-    minVertex /= vs.size()-1;
-    minVertex -= pos;
-    LogDefault->criticalOutValue("avgVertex",minVertex);
-    for (int i = vs.size()-1; i > 0; i--)
-        vs[i]->setPos(vs[i]->getPos() - minVertex);
     }
     ifstream obj(filename);
     while(obj >> cmd){

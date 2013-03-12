@@ -7,6 +7,7 @@
 
 #include "./Vector3D.h"
 #include "../libs/dSFMT.h"
+
 const float EPS =   0.00001f;	//small value
 const int MAX_DEPTH = 12;		//how many bounces can ray do
 const float PI = 3.14159265359f;
@@ -17,6 +18,7 @@ const Vector3D V3D_BLANK(0,0,0);
 const Vector3D V3D_WHITE(1,1,1);
 const Vector3D V3D_GREEN(0,1,0);
 const unsigned int MOD3_ACCEL[] = {0,1,2,0,1,2,0};
+const Vector3D V3D_POINT[] = {Vector3D(1,0,0), Vector3D(0,1,0), Vector3D(0,0,1)};
 //const int MAX_KD_DEPTH = 30;
 const float KDCINTR	= 0.5f;
 const float KDCTRAV = 0.1f;

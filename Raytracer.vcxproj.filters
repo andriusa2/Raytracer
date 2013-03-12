@@ -130,6 +130,9 @@
     <ClInclude Include="core\KdDebugRayCaster.h">
       <Filter>integrators</Filter>
     </ClInclude>
+    <ClInclude Include="utils\Quaternion.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

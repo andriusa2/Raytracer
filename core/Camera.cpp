@@ -40,6 +40,19 @@ void Camera::set(const Vector3D & pos,
     LogDefault->outValue("Camera reset", *this);
 }
 
+void Camera::set(const Vector3D & pos, const Vector3D & u, const Vector3D & r,
+                 const Vector3D & f) {
+    position = pos;
+    up = u;
+    right = r;
+    front = f;
+    right = up.cross(front);
+    up = front.cross(right);
+    right.normalize();
+    front.normalize();
+    up.normalize();
+    LogDefault->outValue("Camera precise reset", *this);
+}
 std::ostream& operator<< (std::ostream &out, const Camera & cam) {
     out << "Camera: \n\tPos=" << cam.position <<
         "\n\tUp=" << cam.up <<
@@ -88,6 +101,6 @@ void Camera::go(int mask) {
 }
 
 void Camera::turn(float xz, float yz) {
-
+    
 
 }

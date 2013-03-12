@@ -8,7 +8,7 @@
 #include "./util_pack.h"
 #include "../materials/material_pack.h"
 #include "../primitives/Triangle.h"
-
+#include "./Quaternion.h"
 class ObjLoader {
 public:
     static void Load(const char filename[],
@@ -17,6 +17,7 @@ public:
         Material* defMaterial,
         Vector3D & pos,
         Vector3D & scale,
+        Vector3D & rotate,
         bool smoothNormals = false);
 private:
     static Vertex * getVertex(istream & in, vector<Vertex *> &vs,

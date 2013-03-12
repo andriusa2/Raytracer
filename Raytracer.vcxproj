@@ -134,6 +134,7 @@
     <ClInclude Include="utils\constants.h" />
     <ClInclude Include="utils\Logger.h" />
     <ClInclude Include="utils\ObjLoader.h" />
+    <ClInclude Include="utils\Quaternion.h" />
     <ClInclude Include="utils\Ray.h" />
     <ClInclude Include="utils\util_pack.h" />
     <ClInclude Include="utils\Vector3D.h" />
