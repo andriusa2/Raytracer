@@ -9,13 +9,19 @@ Config::Config(const char filename[]) {
     parse(filename);
 }
 int Config::getIntByName(const string& name) {
-    return ints[name];
+    if (ints.count(name) == 1)
+        return ints[name];
+    else return 0;
 }
 float Config::getFloatByName(const string& name) {
-    return floats[name];
+    if (floats.count(name) == 1)
+        return floats[name];
+    else return -INF;
 }
 string Config::getStringByName(const string& name) {
-    return strings[name];
+    if (strings.count(name) == 1)
+        return strings[name];
+    else return "";
 }
 ostream& operator<< (ostream& out, const Config& data) {
     out << "Dumping config data:\n";

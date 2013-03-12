@@ -19,6 +19,8 @@ KdTree :: KdTree(vector<Triangle *> & tris) {
 void KdTree::Load(vector<Triangle *> & tris) {
     makeTree(tris);
     //DumpTree();
+    scene_bound.left -= Vector3D(EPS,EPS,EPS);
+    scene_bound.right += Vector3D(EPS,EPS,EPS);
     LogDefault->flush();
 }
 

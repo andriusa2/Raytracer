@@ -14,9 +14,13 @@ public:
 
 private:
     Vector3D trace(Ray & ray, int depth, float rho);
+    void renderAcc(unsigned int * buffer);
     int scrWidth;
     int scrHeight;
     int maxDepth;
+    Vector3D * avgBuffer;
+    int sampleNo;
+    int ss;
     Camera * cam;
     Scene * scene;
 };
