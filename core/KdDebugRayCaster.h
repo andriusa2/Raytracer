@@ -11,7 +11,7 @@ public:
     static Vector3D getCol(Triangle * tri, float u, float v);
     static Vector3D getNorm(Triangle * tri, float u, float v);
     static Vector3D getUV(Triangle * tri, float u, float v);
-
+    void invalidateAvgs() {};
 private:
     Vector3D trace(Ray & ray, int depth, float rho);
     int scrWidth;

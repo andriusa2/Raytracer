@@ -11,7 +11,7 @@ public:
     RayCaster(Config& config);
     void linkScene(Scene * myscene);
     void render(unsigned int * buffer);
-
+    void invalidateAvgs();
 private:
     Vector3D trace(Ray & ray, int depth, float & dist, float rho);
     void renderAcc(unsigned int * buffer);

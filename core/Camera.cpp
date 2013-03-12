@@ -1,6 +1,8 @@
 #include "./Camera.h"
 
 Camera::Camera() {
+    speed = DEFCAMSPEED;
+    inv = false;
     set(V3D_BLANK, Vector3D(0,0,1), Vector3D(0,1,0));
     LogDefault->outValue("IntializedCamera",*this);
 }
@@ -8,6 +10,8 @@ Camera::Camera() {
 Camera::Camera(const Vector3D & pos,
         const Vector3D & lookAt,
         const Vector3D & top) {
+    speed = DEFCAMSPEED;
+    inv = false;
     set(pos, lookAt, top);
 }
 
@@ -15,9 +19,9 @@ Camera::Camera(const Vector3D & pos,
         const Vector3D & u,
         const Vector3D & r,
         const Vector3D & f):
-up(u), position(pos), right(r), front(f)
+up(u), position(pos), right(r), front(f), speed(DEFCAMSPEED)
 {
-
+    inv = false;
 }
 
 
@@ -51,4 +55,39 @@ void Camera::getDirection(Ray & ray, float x, float y, float whr) {
 }
 Vector3D Camera::getPos() {
     return position;
+}
+
+void Camera::changeSpeed(int augment) {
+    if (augment > 0) 
+        speed *= 1.1;
+    else speed *= 0.9;
+}
+bool Camera::invalidate() {
+    if (inv) {
+        inv = false;
+        return true;
+    }
+    return false;
+}
+
+void Camera::go(int mask) {
+    if (mask & LEFT)
+        position -= right * speed;
+    if (mask & RIGHT)
+        position += right * speed;
+    if (mask & FRONT)
+        position += front * speed;
+    if (mask & BACK)
+        position -= front * speed;
+    if (mask & UP)
+        position += up * speed;
+    if (mask & DOWN)
+        position -= up * speed;
+
+    inv = mask != 0;
+}
+
+void Camera::turn(float xz, float yz) {
+
+
 }

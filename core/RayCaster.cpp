@@ -23,8 +23,12 @@ void RayCaster::linkScene(Scene * myscene) {
 }
 
 void RayCaster::render(unsigned int * buffer) {
-    if (avgBuffer != 0) 
+    if (avgBuffer != 0) {
+        if (cam->invalidate()){
+            invalidateAvgs();
+        }
         return renderAcc(buffer);
+    }
     Ray ray;
     omp_set_num_threads(7);
 #pragma omp parallel for schedule(dynamic) private(ray)
@@ -52,8 +56,9 @@ void RayCaster::renderAcc(unsigned int * buffer) {
                 float(scrHeight)/float(scrWidth));
             float dist = 0;
             Vector3D tmpCol = trace(ray, 0, dist, 1);
-            
-            avgBuffer[y*scrWidth+x] += tmpCol;
+            if (sampleNo == 1)
+                avgBuffer[y*scrWidth+x] = tmpCol;
+            else avgBuffer[y*scrWidth+x] += tmpCol;
             buffer[y * scrWidth + x] =
                 (avgBuffer[y * scrWidth + x] * (1.0f/float(sampleNo))).toRGBCol();
         }
@@ -76,4 +81,8 @@ Vector3D RayCaster::trace(Ray & ray, int depth, float & dist, float rho) {
 
     return prim->getMat()->getColor() *
         scene->accumulateLight(ray, prim->getNormal(u, v));
+}
+
+void RayCaster::invalidateAvgs() {
+    sampleNo = 0;
 }
