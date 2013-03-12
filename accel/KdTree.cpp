@@ -48,7 +48,7 @@ void KdTree::makeTree(vector<Triangle *> & tris) {
     // make an axis-based sorted list of primitive
     // start and end-points
 
-    KdHelperList * help = new KdHelperList[tris.size() * 2];
+    KdHelperList * help = mManager.getKdHelperNodes(tris.size() * 2);
     KdHelperList * heads[3] = {};
     int helpID = 0;
     AABB scene(Vector3D(+INF,+INF,+INF), Vector3D(-INF,-INF,-INF));
@@ -90,7 +90,8 @@ void KdTree::makeTree(vector<Triangle *> & tris) {
     root = new KdTreeNode();
     scene_bound = scene;
     subdivide(heads, root, scene, 0, tris.size(), 0);
-    delete [] help;
+    LogDefault->line();
+    mManager.releaseHelperNodes();
 }
 
 unsigned int KdTree::calcTriangles(KdHelperList * head, int axis,
@@ -218,7 +219,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         node->setLeaf(true);
         ObjList * head = mManager.getObjListNodes(calcTriangles(heads[0], 0, 0, KdTree::testAll));
         addTriangles(heads[0], 0, head, 0, KdTree::testAll);
-        LogDefault->criticalOutValue("MadeIntLeaf, objects", calcTriangles(heads[0],0,0,KdTree::testAll));
+        //LogDefault->criticalOutValue("MadeIntLeaf, objects", calcTriangles(heads[0],0,0,KdTree::testAll));
         node->setObjList(head);
         return ;
     }
@@ -240,8 +241,8 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         if (tmp->left) {
             if (tmp->data[minAxis] < bestPos) {
                 if (tmp->otherSide->data[minAxis] > bestPos) {
-                    KdHelperList * left = new KdHelperList;
-                    KdHelperList * right = new KdHelperList;
+                    KdHelperList * left = mManager.getKdHelperNode();
+                    KdHelperList * right = mManager.getKdHelperNode();
                     left->otherSide = tmp;
                     right->otherSide = tmp->otherSide;
                     right->left = true;
@@ -270,6 +271,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
             if (tmpHead->data[axis] > (*it)->data[axis]) {
                 (*it)->next[axis] = tmpHead;
                 tmpHead = *it;
+                heads[axis] = tmpHead;
                 continue;
             }
             while (tmpHead->next[axis] && tmpHead->next[axis]->data[axis] <= (*it)->data[axis]) {
@@ -345,7 +347,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         else {
             ObjList * head = mManager.getObjListNodes(n_left_in);
             addTriangles(l_heads[minAxis], minAxis, head, bestPos, KdTree::testLeft);
-            LogDefault->criticalOutValue("MadeLeftLeaf, objects", n_left_in);
+            //LogDefault->criticalOutValue("MadeLeftLeaf, objects", n_left_in);
             node->getLeft()->setObjList(head);
         }
     }
@@ -360,14 +362,10 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         else {
             ObjList * head = mManager.getObjListNodes(n_right_in);
             addTriangles(r_heads[minAxis], minAxis, head, bestPos, KdTree::testRight);
-            LogDefault->criticalOutValue("MadeRightLeaf, objects", n_right_in);
+            //LogDefault->criticalOutValue("MadeRightLeaf, objects", n_right_in);
             node->getRight()->setObjList(head);
         }
     }
-    // release temp nodes
-    for (list<KdHelperList *>::iterator it = newnodes.begin();
-        it != newnodes.end(); it++) 
-        delete *it;
 }
 
 Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
