@@ -151,6 +151,9 @@ void Scene::loadScene(const char filename[]) {
             mats[buf0] = materials.back();
             break;
         case 'o': // object
+            arg1 = V3D_BLANK;
+            arg0 = V3D_BLANK;
+            argb0 = false;
             while (in >> cmd1) {
                 if(cmd1 == '}') break;
                 if (cmd1 == 'f') {
@@ -161,10 +164,22 @@ void Scene::loadScene(const char filename[]) {
                     in.ignore(256,' ');
                     in >> buf1;
                 }
+                if (cmd1 == 'p') {
+                    in.ignore(256,' ');
+                    in>>arg0;
+                }
+                if (cmd1 == 's') {
+                    
+                    argb0=true;
+                }
+                if (cmd1 == 'r') {
+                    in.ignore(256, ' ');
+                    in >> arg1;
+                }
                 in.ignore(256,'\n');
             }
             LogDefault->criticalOutValue("LoadObjFile",buf0);
-            ObjLoader::Load(buf0.c_str(),triangles,materials,mats[buf1]);
+            ObjLoader::Load(buf0.c_str(),triangles,materials,mats[buf1],arg0, arg1, argb0);
             break;
         case 't' :
             while (in >> cmd1) {

@@ -3,17 +3,16 @@ using namespace std;
 
 void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
                      vector<Material*> & materials, Material* defMaterial,
+                     Vector3D & pos,
+                     Vector3D & scale,
                      bool smoothNormals) {
     LogDefault->line();
     LogDefault->outString("Loading object ./");
     LogDefault->outStringN(filename);
+    LogDefault->outValue("Position", pos);
+    LogDefault->outValue("scale", scale);
+    LogDefault->outValue("smooth", smoothNormals);
 
-    ifstream obj(filename);
-    if (!obj.good()) {
-        LogDefault->outStringN("Loading failed, aborting");
-        LogDefault->line();
-        return;
-    }
     // the file loads, awesome!
 
     vector<Vertex*> vs;
@@ -24,14 +23,38 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
     int a, b, c;
     int triscnt = 0;
     map<string, Material*> mats;
+    bool wantScaling = scale.sqlength() > EPS;
+    LogDefault->outValue("Scaling",wantScaling);
+    Vector3D minVertex = V3D_BLANK;
+    {
+        
+    ifstream obj(filename);
+    if (!obj.good()) {
+        LogDefault->outStringN("Loading failed, aborting");
+        LogDefault->line();
+        return;
+    }
     while (obj >> cmd) {
         if(strcmp(cmd, "v") == 0) { //vertex
             obj >> tmpVect;
+            if (wantScaling)
+                tmpVect *= scale;
+            minVertex += tmpVect;
             vs.push_back(
                 new Vertex(tmpVect)
             );
         }
-        else if(strcmp(cmd, "usemtl") == 0) { // material change
+        obj.ignore(256,'\n');
+    }
+    minVertex /= vs.size()-1;
+    minVertex -= pos;
+    LogDefault->criticalOutValue("avgVertex",minVertex);
+    for (int i = vs.size()-1; i > 0; i--)
+        vs[i]->setPos(vs[i]->getPos() - minVertex);
+    }
+    ifstream obj(filename);
+    while(obj >> cmd){
+        if(strcmp(cmd, "usemtl") == 0) { // material change
             obj >> cmd;
             curMat = cmd;
         }
@@ -39,7 +62,9 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
             obj >> a >> b >> c;
             if (smoothNormals) 
                 tris.push_back( new Triangle(vs[a], vs[b], vs[c]) );
-            else tris.push_back( new Triangle(new Vertex(*vs[a]), new Vertex(*vs[b]), new Vertex(*vs[c])) );
+            else tris.push_back( new Triangle(new Vertex(*vs[a]),
+                new Vertex(*vs[b]),
+                new Vertex(*vs[c])) );
             tris.back()->setMat(getMat(curMat, mats, defMaterial));
             triscnt++;
         }

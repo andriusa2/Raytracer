@@ -15,6 +15,8 @@ public:
         vector<Triangle*> & triangles,
         vector<Material*> & materials,
         Material* defMaterial,
+        Vector3D & pos,
+        Vector3D & scale,
         bool smoothNormals = false);
 private:
     static void LoadMTL(const char filename[],
