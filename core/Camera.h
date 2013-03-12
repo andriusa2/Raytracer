@@ -2,7 +2,7 @@
 #define CAMERA_H
 
 #include "../utils/util_pack.h"
-
+#include "../utils/Quaternion.h"
 class Camera {
 public:
     enum {
@@ -39,6 +39,7 @@ public:
     bool invalidate();
     friend std::ostream& operator<< (std::ostream &out, const Camera & cam);
 private:
+    void fixDirs();
     float speed;
     bool inv;
     Vector3D up;

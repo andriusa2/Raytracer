@@ -22,6 +22,7 @@ Camera::Camera(const Vector3D & pos,
 up(u), position(pos), right(r), front(f), speed(DEFCAMSPEED)
 {
     inv = false;
+    fixDirs();
 }
 
 
@@ -32,11 +33,7 @@ void Camera::set(const Vector3D & pos,
     front = lookAt - pos;
     front.normalize();
     up = top;
-    up.normalize();
-    right = up.cross(front);
-    right.normalize();
-    up = front.cross(right);
-    up.normalize();
+    fixDirs();
     LogDefault->outValue("Camera reset", *this);
 }
 
@@ -46,11 +43,7 @@ void Camera::set(const Vector3D & pos, const Vector3D & u, const Vector3D & r,
     up = u;
     right = r;
     front = f;
-    right = up.cross(front);
-    up = front.cross(right);
-    right.normalize();
-    front.normalize();
-    up.normalize();
+    fixDirs();
     LogDefault->outValue("Camera precise reset", *this);
 }
 std::ostream& operator<< (std::ostream &out, const Camera & cam) {
@@ -101,6 +94,18 @@ void Camera::go(int mask) {
 }
 
 void Camera::turn(float xz, float yz) {
-    
+    front = Quaternion::rotate(up, front, xz);
+    right = Quaternion::rotate(up, right, xz);
+    front = Quaternion::rotate(right, front, yz);
+    up = Quaternion::rotate(right, up, yz);
+    fixDirs();
 
+}
+
+void Camera::fixDirs() {
+    right = up.cross(front);
+    right.normalize();
+    up = front.cross(right);
+    up.normalize();
+    front.normalize();
 }
