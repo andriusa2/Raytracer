@@ -101,6 +101,12 @@ void Triangle::precompute() {
 	Vector3D b=C-A;
 
 	Vector3D mN=b.cross(c);
+    /* or maybe?
+    Vector3D mN = V3D_BLANK;
+    for (int i = 0; i < 3; i++)
+        mN += vertices[i]->getNormal();
+    mN.normalize();
+    */
 	int u, v;
     // find the max axis
 	if(fabs(mN[0])>fabs(mN[1]))

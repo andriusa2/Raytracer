@@ -19,6 +19,9 @@ public:
         Vector3D & scale,
         bool smoothNormals = false);
 private:
+    static Vertex * getVertex(istream & in, vector<Vertex *> &vs,
+                              vector<Vector3D> & vn, bool & normals,
+                              bool &smoothNormals);
     static void LoadMTL(const char filename[],
         map<string, Material*> & mats,
         vector<Material*> & materials);

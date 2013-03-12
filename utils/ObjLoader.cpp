@@ -16,6 +16,8 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
     // the file loads, awesome!
 
     vector<Vertex*> vs;
+    vector<Vector3D> vn;
+    vn.push_back(V3D_BLANK);
     vs.push_back(0);
     char cmd[256];
     Vector3D tmpVect;
@@ -44,6 +46,10 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
                 new Vertex(tmpVect)
             );
         }
+        else if (strcmp(cmd, "vn") == 0) {
+            obj >> tmpVect;
+            vn.push_back(tmpVect);
+        }
         obj.ignore(256,'\n');
     }
     minVertex /= vs.size()-1;
@@ -59,12 +65,12 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
             curMat = cmd;
         }
         else if(strcmp(cmd, "f") == 0) { // triangle
-            obj >> a >> b >> c;
-            if (smoothNormals) 
-                tris.push_back( new Triangle(vs[a], vs[b], vs[c]) );
-            else tris.push_back( new Triangle(new Vertex(*vs[a]),
-                new Vertex(*vs[b]),
-                new Vertex(*vs[c])) );
+            Vertex * vert[3];
+            bool normals = false;
+            for (int i = 0; i < 3; i++) {
+                vert[i] = getVertex(obj, vs, vn, normals, smoothNormals);
+            }
+            tris.push_back( new Triangle(vert[0], vert[1], vert[2], !normals) );
             tris.back()->setMat(getMat(curMat, mats, defMaterial));
             triscnt++;
         }
@@ -90,7 +96,38 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
     // everything is autodestroyed at the end of scope
     // we want to keep our beloved vertices though
 }
-
+Vertex * ObjLoader::getVertex(istream & in, vector<Vertex *> &vs,
+                              vector<Vector3D> & vn, bool & normals,
+                              bool &smoothNormals) {
+    int a, b, c;
+    char tmp;
+    in >> a; // vertex number
+    if (in.peek() != '/') {
+        normals = false;
+        if (smoothNormals)
+            return vs[a];
+        else return new Vertex(*vs[a]);
+    }
+    in >> tmp;
+    if (in.peek() != '/' ) { // should be uv coordinates
+        in >> b;
+        if (in.peek() != '/') {
+            Vertex * retval = new Vertex(*vs[a]);
+            normals = true;
+            smoothNormals = false;
+            retval->setNormal(vn[b]);
+            return retval;
+        }
+    }
+    else b = 0;
+    in >> tmp; // normal
+    in >> c;
+    normals = true;
+    smoothNormals = false;
+    Vertex * retval = new Vertex(*vs[a]);
+    retval->setNormal(vn[c]);
+    return retval;
+}
 Material* ObjLoader::getMat(string & name,
                             map<string, Material*> & mats,
                             Material * defMaterial) {
