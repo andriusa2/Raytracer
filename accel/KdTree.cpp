@@ -52,7 +52,8 @@ void KdTree::makeTree(vector<Triangle *> & tris) {
     KdHelperList * heads[3] = {};
     int helpID = 0;
     AABB scene(Vector3D(+INF,+INF,+INF), Vector3D(-INF,-INF,-INF));
-    MAX_KD_DEPTH = 5.0f + 1.8f * logf(float(tris.size())) + 0.9f;
+    MAX_KD_DEPTH = 8.0f + 1.3f * logf(float(tris.size())) + 0.9f;
+    LogDefault->outValue("MAX_KD_DEPTH",MAX_KD_DEPTH);
     for (vector<Triangle *>::iterator it = tris.begin();
         it != tris.end(); it++) {
         for (int i = 0; i < 3; i++) {
