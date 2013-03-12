@@ -13,7 +13,7 @@ public:
     void render(unsigned int * buffer);
 
 private:
-    Vector3D trace(Ray & ray, int depth, float rho);
+    Vector3D trace(Ray & ray, int depth, float & dist, float rho);
     void renderAcc(unsigned int * buffer);
     int scrWidth;
     int scrHeight;

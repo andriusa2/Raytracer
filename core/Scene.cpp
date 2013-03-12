@@ -66,9 +66,10 @@ Triangle* Scene::intersect(Ray& ray, float& dist, float& u, float& v) {
 
 Vector3D Scene::accumulateLight(Ray& ray, Vector3D & normal) {
     Vector3D retval = V3D_BLANK;
-    Ray light(ray.origin,V3D_BLANK);
+    Ray light(ray.origin - EPS * ray.direction,V3D_BLANK);
     for (std::vector<Triangle*>::iterator it = lights.begin();
         it != lights.end(); it++) {
+            
             light.direction = (*it)->sampleSurface() - light.origin;
             float tmpDist = INF;
             intersect(light, tmpDist);

@@ -32,8 +32,9 @@ void RayCaster::render(unsigned int * buffer) {
         for (int x = 0; x < scrWidth; x++) {
             ray.origin = cam->getPos();
             cam->getDirection(ray, (float(x)/(float(scrWidth))), (float(y)/float(scrHeight)), float(scrHeight)/float(scrWidth));
+            float dist = 0;
             buffer[y * scrWidth + x] =
-                trace(ray, 0, 1).toRGBCol();
+                trace(ray, 0, dist, 1).toRGBCol();
         }
 }
 
@@ -45,17 +46,23 @@ void RayCaster::renderAcc(unsigned int * buffer) {
     for (int y = 0; y < scrHeight; y++)
         for (int x = 0; x < scrWidth; x++) {
             ray.origin = cam->getPos();
-            cam->getDirection(ray, (float(x)/(float(scrWidth))), (float(y)/float(scrHeight)), float(scrHeight)/float(scrWidth));
-            avgBuffer[y*scrWidth+x] += trace(ray, 0, 1);
+            cam->getDirection(ray,
+                ((float(x)+0.5f-GET_RND(omp_get_thread_num()))/(float(scrWidth))),
+                ((float(y)+0.5f-GET_RND(omp_get_thread_num()))/float(scrHeight)),
+                float(scrHeight)/float(scrWidth));
+            float dist = 0;
+            Vector3D tmpCol = trace(ray, 0, dist, 1);
+            
+            avgBuffer[y*scrWidth+x] += tmpCol;
             buffer[y * scrWidth + x] =
                 (avgBuffer[y * scrWidth + x] * (1.0f/float(sampleNo))).toRGBCol();
         }
 }
-Vector3D RayCaster::trace(Ray & ray, int depth, float rho) {
+Vector3D RayCaster::trace(Ray & ray, int depth, float & dist, float rho) {
     if (depth == maxDepth) return V3D_BLANK;
 
     Triangle * prim;
-    float dist = 0;
+    dist = 0;
     prim = scene->intersect(ray, dist);
     if (!prim) return V3D_BLANK;
     

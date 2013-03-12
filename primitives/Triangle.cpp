@@ -146,9 +146,9 @@ Vector3D Triangle::sampleSurface() const {
     const Vector3D& a = vertices[0]->getPos();
     const Vector3D& b = vertices[1]->getPos();
     const Vector3D& c = vertices[2]->getPos();
-
-    const float e1 = GET_RND(0);
-    const float e2 = e1 * GET_RND(0);
+    const int & id = omp_get_thread_num();
+    const float e1 = GET_RND(id);
+    const float e2 = e1 * GET_RND(id);
 
     return a * (1.0f - e1 - e2) + b * e1 + c * e2;
 }
