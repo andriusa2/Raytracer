@@ -10,6 +10,9 @@ RayCaster::RayCaster(Config& config):
     LogDefault->outValue("width",scrWidth);
     LogDefault->outValue("height",scrHeight);
     LogDefault->outValue("max_depth",maxDepth);
+    
+    omp_set_num_threads(omp_get_max_threads()-1);
+    LogDefault->outValue("ompnumthreads",omp_get_max_threads());
     if (config.getIntByName("accumulator") != 0)
         avgBuffer = new Vector3D [scrWidth * scrHeight];
     else avgBuffer = 0;
@@ -30,7 +33,6 @@ void RayCaster::render(unsigned int * buffer) {
         return renderAcc(buffer);
     }
     Ray ray;
-    omp_set_num_threads(7);
 #pragma omp parallel for schedule(dynamic) private(ray)
     for (int y = 0; y < scrHeight; y++)
         for (int x = 0; x < scrWidth; x++) {
@@ -45,7 +47,6 @@ void RayCaster::render(unsigned int * buffer) {
 void RayCaster::renderAcc(unsigned int * buffer) {
     Ray ray;
     sampleNo ++;
-    omp_set_num_threads(7);
 #pragma omp parallel for schedule(dynamic) private(ray)
     for (int y = 0; y < scrHeight; y++)
         for (int x = 0; x < scrWidth; x++) {

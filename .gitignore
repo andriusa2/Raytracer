@@ -22,3 +22,5 @@
 *.ini
 *.obj
 *.mtl
+*.exe
+*.dll
