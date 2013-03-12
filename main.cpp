@@ -75,7 +75,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine
 	rect.right = SCRWIDTH, rect.bottom = SCRHEIGHT;
 	AdjustWindowRect( &rect, WS_POPUP|WS_SYSMENU|WS_CAPTION, 0 );
 	rect.right -= rect.left, rect.bottom -= rect.top;
-	wnd = CreateWindowEx( 0, L"RT", L"RT WHITTEDTEST", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME,
+	wnd = CreateWindowEx( 0, L"RT", L"RayTracer v0.2", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME,
 		CW_USEDEFAULT, CW_USEDEFAULT, rect.right, rect.bottom, 0, 0, 0, 0 );
 	ShowWindow(wnd,SW_NORMAL);
 	for ( cc = 0; cc < sizeof( BITMAPINFOHEADER ) + 16; cc++ ) bitmapbuffer[cc] = 0;
