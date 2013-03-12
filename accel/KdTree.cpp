@@ -379,18 +379,18 @@ Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
     Vector3D &O = ray.getO();
 
     for (int i = 0; i < 3; i++) {
-        if (D.get(i) < EPS) {
+        if (D.get(i) < 0) {
             if (O.get(i) < p1.get(i))
                 return retval;
         }
-        else if (D.get(i) > EPS) {
+        else if (D.get(i) > 0) {
             if (O.get(i) > p2.get(i))
                 return retval;
         }
     }
-
+    /*
     for (int i = 0; i < 3; i++) {
-        float pos = tfar * D.get(i);
+        float pos =tfar * D.get(i);
         if (D.get(i) < 0) {
             if (pos < p1.get(i))
                 tfar = tnear - (tfar - tnear) * (O.get(i) - p1.get(i))/pos;
@@ -404,6 +404,18 @@ Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
                 tnear += (tfar - tnear) * (p1.get(i) - O.get(i)) / pos;
         }
         if(tnear > tfar) return retval;
+    }*/
+    for (int i = 0; i < 3; i++) {
+        float t1 = (p1.get(i) - O.get(i))/D.get(i);
+        float t2 = (p2.get(i) - O.get(i))/D.get(i);
+        if (t1 > t2) {
+            float c = t2;
+            t2 = t1;
+            t1 = c;
+        }
+        if (t1 > tnear) tnear = t1;
+        if (t2 < tfar) tfar = t2;
+        if (tnear > tfar) return false;
     }
     int threadID = omp_get_thread_num();
     int entry = 0;
@@ -425,14 +437,14 @@ Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
         while (!currnode->isLeaf()) {
             const float & splitPos = currnode->getSplitPos();
             const int & axis = currnode->getAxis();
-            if (stack[entry].pb.get(axis) <= splitPos) {
+            if (stack[entry].pb.get(axis) < splitPos) {
                 currnode = currnode->getLeft();
-                farchild = currnode->getRight();
+                farchild = currnode+1;
                 if (stack[exit].pb.get(axis) < splitPos) continue;
             }
             else {
                 farchild = currnode->getLeft();
-                currnode = currnode->getRight();
+                currnode = farchild +1;
                 if (stack[exit].pb.get(axis) > splitPos) continue;
             }
             t = (splitPos - O.get(axis)) * pr[axis];
@@ -445,11 +457,12 @@ Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
             stack[exit].pb[axis] = splitPos;
         }
         ObjList * head = currnode->getObjList();
-        float d = stack[exit].t;
-        float mu, mv;
+        float d = stack[exit].t+EPS;
         while (head) {
             Triangle * tri = head->getTriangle();
             int result;
+            float mu;
+            float mv;
             if (result = tri->intersect(ray, d, mu, mv)) {
                 retval = tri;
                 dist = d;
@@ -460,7 +473,7 @@ Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
         }
         if (retval) return retval;
         entry = exit;
-        currnode = stack[entry].node;
+        currnode = stack[exit].node;
         exit = stack[entry].prev;
     }
     return retval;
