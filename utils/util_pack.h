@@ -11,5 +11,4 @@
 #include "./Ray.h"
 #include "../libs/dSFMT.h"
 
-extern Logger * LogDefault;
 #endif

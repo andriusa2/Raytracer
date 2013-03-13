@@ -36,4 +36,7 @@ void Logger::outValue(const char name[], const T & value) {
     outTime();
     out << name << "=" << value << "\n";
 }
+
+
+extern Logger * LogDefault;
 #endif
