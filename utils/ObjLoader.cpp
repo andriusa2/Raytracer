@@ -85,14 +85,21 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
     }
 
     // the file loads, awesome!
-
+    
     while (obj >> cmd) {
         if(strcmp(cmd, "v") == 0) { //vertex
-            obj >> vs[vID];
+            obj.getline(cmd, 256);
+            obj.putback('\n');
+            vs[vID].parse(cmd);
+            //obj >> vs[vID];
             minVertex += vs[vID++];
         }
         else if (strcmp(cmd, "vn") == 0) {
-            obj >> tmpVect;
+            
+            obj.getline(cmd, 256);
+            obj.putback('\n');
+            tmpVect.parse(cmd);
+            //obj >> tmpVect;
             vn.push_back(tmpVect);
         }
         obj.ignore(256,'\n');
@@ -105,17 +112,23 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
     }
     minVertex /= numVertices;
     //minVertex -= pos;
+    Quaternion turn = Quaternion::getRotation(V3D_POINT[0], rotate[0]);
+    for (int i = 1;i < 3; i++)
+        turn *= Quaternion::getRotation(V3D_POINT[i], rotate[i]);
+    Quaternion turnR = -turn;
+    Quaternion tmp;
     LogDefault->criticalOutValue("avgVertex",minVertex);
     for (int i = 0; i < numVertices; i++){
         // reset to 0;0 origin (center of model)
+        tmp = turn;
         vs[i] -= minVertex;
         // scale it a little bit
         if (wantScaling)
             vs[i] *= scale;
         // rotate it around all the axes
-        for (int axis = 0; axis < 3; axis++)
-            vs[i] = Quaternion::rotate(V3D_POINT[axis],
-            vs[i], rotate[axis]);
+        tmp *= vs[i];
+        tmp *= turnR;
+        tmp.getVector(vs[i]);
         // move the origin to `pos`
         vs[i] += pos;
     }
