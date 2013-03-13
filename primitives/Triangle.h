@@ -32,6 +32,7 @@ public:
     Vector3D sampleSurface() const;
     float getMinAxis(unsigned int axis);
     float getMaxAxis(unsigned int axis);
+    void recalc(bool recalcNormals);
 private:
     void recalcNorms();
     void precompute();

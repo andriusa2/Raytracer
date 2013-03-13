@@ -184,3 +184,8 @@ float Triangle::getMaxAxis(unsigned int axis) {
             maxAxis = vertices[i]->getPos().get(axis);
     return maxAxis;
 }
+void Triangle::recalc(bool recalcNormals) {
+    if (recalcNormals)
+        recalcNorms();
+    precompute();
+}

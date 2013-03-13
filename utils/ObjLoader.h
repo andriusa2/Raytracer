@@ -4,6 +4,7 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <sstream>
 
 #include "./util_pack.h"
 #include "../materials/material_pack.h"
@@ -20,9 +21,11 @@ public:
         Vector3D & rotate,
         bool smoothNormals = false);
 private:
-    static Vertex * getVertex(istream & in, vector<Vertex *> &vs,
-                              vector<Vector3D> & vn, bool & normals,
-                              bool &smoothNormals);
+    static Vertex * getVertex(int vID,
+        istream & in, Vector3D vs[],
+        Vertex verts[], vector<Vector3D> & vn,
+        bool & recalcNormals,
+        bool & smoothNormals);
     static void LoadMTL(const char filename[],
         map<string, Material*> & mats,
         vector<Material*> & materials);
