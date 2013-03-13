@@ -25,7 +25,7 @@ void KdTree::Load(vector<Triangle *> & tris) {
 }
 
 void KdTree::resetAll() {
-    mManager.reset();
+    //mManager.reset();
     root = 0;
 }
 
@@ -93,7 +93,7 @@ void KdTree::makeTree(vector<Triangle *> & tris) {
     scene_bound = scene;
     subdivide(heads, root, scene, 0, tris.size(), 0);
     LogDefault->line();
-    mManager.releaseHelperNodes();
+    mManager.releaseKdHelperNodes();
 }
 
 unsigned int KdTree::calcTriangles(KdHelperList * head, int axis,

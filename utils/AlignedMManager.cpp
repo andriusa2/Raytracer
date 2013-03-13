@@ -3,119 +3,97 @@
 AlignedMManager::AlignedMManager(int preload) :PRELOAD(preload) {
     kdnodes.push_back(NEW_ALIGNED(KdTreeNode, PRELOAD, 16));
     objnodes.push_back(NEW_ALIGNED(ObjList, PRELOAD, 16));
-    kdhelpnodes.push_back(NEW_ALIGNED(KdHelperList, PRELOAD, 16));
-    currkdh = kdhelpnodes.begin();
-    currKd = kdnodes.begin();
-    currObj = objnodes.begin();
+    kdhelpnodes.push_back(new countRefs<KdHelperList>(PRELOAD));
+    currkdh = kdhelpnodes.back()->pointer;
+    currKd = kdnodes.back();
+    currObj = objnodes.back();
     kdID = 0;
     objID = 0;
     kdhID = 0;
+    releasedKdHelpers.push_back(0);
 }
 
 KdTreeNode * AlignedMManager::getKdNode() {
     if(kdID < PRELOAD) {
         kdID += 2;
-        return (*currKd)+(kdID-2);
+        return currKd+(kdID-2);
     }
-    list<KdTreeNode*>::iterator it = currKd++;
-    if (currKd == kdnodes.end()) {
-        kdnodes.push_back(NEW_ALIGNED(KdTreeNode, PRELOAD, 16));
-        currKd = kdnodes.end();
-        currKd--;
-    }
-    kdID = 0;
-    return getKdNode();
+    kdnodes.push_back(NEW_ALIGNED(KdTreeNode, PRELOAD, 16));
+    currKd = kdnodes.back();
+    kdID = 2;
+
+    return currKd;
 }
 
 ObjList * AlignedMManager::getObjListNode() {
     if(objID < PRELOAD) {
         objID += 1;
-        return (*currObj)+(objID-1);
+        return currObj+(objID-1);
     }
-    list<ObjList*>::iterator it = currObj++;
-    if (currObj == objnodes.end()){
-        objnodes.push_back(NEW_ALIGNED(ObjList, PRELOAD, 16));
-        currObj = objnodes.end();
-        currObj--;
-    }
-    objID = 0;
-    return getObjListNode();
+    objnodes.push_back(NEW_ALIGNED(ObjList, PRELOAD, 16));
+    currObj = objnodes.back();
+    objID = 1;
+    return currObj;
 }
 
 ObjList * AlignedMManager::getObjListNodes(int amount) {
+    if (amount <= 0)
+        return 0;
     if(objID < PRELOAD && (PRELOAD - objID >= amount)) {
         objID += amount;
-        return (*currObj)+(objID-amount);
+        return currObj+(objID-amount);
     }
     if (PRELOAD < amount) {
-        LogDefault->outStringN("Critical Error: not enough space for objnodes");
+        LogDefault->outStringN("Not enough space for objnodes, allocating it customly");
         LogDefault->criticalOutValue("Asked for nodes", amount);
         objnodes.push_front(NEW_ALIGNED(ObjList, amount+1, 16));
         return *(objnodes.begin());
     }
-    list<ObjList*>::iterator it = currObj++;
-    if (currObj == objnodes.end()){
-        objnodes.push_back(NEW_ALIGNED(ObjList, PRELOAD, 16));
-        currObj = objnodes.end();
-        currObj--;
-    }
-    objID = 0;
-    return getObjListNodes(amount);
+    objnodes.push_back(NEW_ALIGNED(ObjList, PRELOAD, 16));
+    currObj = objnodes.back();
+    objID = amount;
+    return currObj;
 }
 
 
 KdHelperList * AlignedMManager::getKdHelperNode() {
     if(kdhID < PRELOAD) {
         kdhID += 1;
-        return (*currkdh)+(kdhID-1);
+        return currkdh+(kdhID-1);
     }
-    list<KdHelperList*>::iterator it = currkdh++;
-    if (currkdh == kdhelpnodes.end()){
-        //kdhelpnodes.push_back(NEW_ALIGNED(KdHelperList, PRELOAD, 16));
-        kdhelpnodes.push_back(new KdHelperList[PRELOAD]);
-        currkdh = kdhelpnodes.end();
-        currkdh--;
-    }
-    kdhID = 0;
-    return getKdHelperNode();
+    kdhelpnodes.push_back(new countRefs<KdHelperList>(PRELOAD));
+    currkdh = kdhelpnodes.back()->pointer;
+    kdhID = 1;
+    return currkdh;
 }
 KdHelperList * AlignedMManager::getKdHelperNodes(int amount) {
+    if (amount <= 0)
+        return 0;
     if(kdhID < PRELOAD && (PRELOAD - kdhID >= amount)) {
         kdhID += amount;
-        return (*currkdh)+(kdhID-amount);
+        return currkdh+(kdhID-amount);
     }
     if (PRELOAD < amount) {
-        LogDefault->outStringN("Critical error: not enough space for kdhelpernodes");
+        LogDefault->outStringN("Not enough space for kdhelpernodes, allocating it customly");
         LogDefault->criticalOutValue("Asked for nodes", amount);
         //kdhelpnodes.push_front(NEW_ALIGNED(KdHelperList, amount+2, 16));
-        kdhelpnodes.push_front(new KdHelperList[amount]);
-        return *(kdhelpnodes.begin());
+        kdhelpnodes.push_front(new countRefs<KdHelperList>(amount));
+        return kdhelpnodes.front()->pointer;
     }
-    list<KdHelperList*>::iterator it = currkdh++;
-    if (currkdh == kdhelpnodes.end()){
-        //kdhelpnodes.push_back(NEW_ALIGNED(KdHelperList, PRELOAD, 16));
-        kdhelpnodes.push_back(new KdHelperList[PRELOAD]);
-        currkdh = kdhelpnodes.end();
-        currkdh--;
-    }
-    kdhID = 0;
-    return getKdHelperNodes(amount);
+    kdhelpnodes.push_back(new countRefs<KdHelperList>(PRELOAD));
+    currkdh = kdhelpnodes.back()->pointer;
+    kdhID = amount;
+    return currkdh;
 }
-void AlignedMManager::releaseHelperNodes() {
-    for (list<KdHelperList *>::iterator it = kdhelpnodes.begin();
+void AlignedMManager::releaseKdHelperNodes() {
+    for (list<countRefs<KdHelperList> *>::iterator it = kdhelpnodes.begin();
         it!=kdhelpnodes.end(); it++)
-        delete [] (*it);
+        delete [] (*it)->pointer;
     kdhelpnodes.clear();
-    kdhelpnodes.push_front(0);
+    //kdhelpnodes.push_front(0);
     kdhID = PRELOAD;
-    currkdh = kdhelpnodes.begin();
+    currkdh = 0;
 }
-// SHOULD ONLY BE USED WHEN ALL REFERENCES ARE DEAD
-void AlignedMManager::reset() {
-    currObj = objnodes.begin();
-    objID = 0;
-    currKd = kdnodes.begin();
-    kdID = 0;
-}
+
 
 AlignedMManager mManager;
