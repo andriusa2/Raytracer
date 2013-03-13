@@ -61,14 +61,12 @@ public:
             buf++;
         if (('0' > *buf || '9' < *buf) && *buf != '-')
             return 0.0;
+
         if (*buf == '-') {
             sign = -1;
             buf++;
         }
-        while (*buf >= '0' && *buf <= '9') {
-            retval = retval * 10.0f + float(*buf - '0');
-            buf++;
-        }
+        retval = (float)fastGetInt(buf);
         if (*buf == '.') {
             float s = 0.1f;
             buf++;
@@ -78,9 +76,29 @@ public:
                 buf++;
             }
         }
+        if (*buf == 'e' || *buf == 'E') {
+            *buf++;
+            int epSg = 1;
+            if (*buf == '-') {
+                epSg = -1;
+                *buf++;
+            }
+            int ep = fastGetInt(buf) * epSg;
+            for (; ep < 0; ep++)
+                retval *= 0.1f;
+            for (; ep > 0; ep--)
+                retval *= 10.0f;
+        }
         return sign * retval;
     }
-
+    int fastGetInt(char * &buf) {
+        int retval = 0;
+        while (*buf >= '0' && *buf <= '9') {
+            retval = retval * 10.0f + float(*buf - '0');
+            buf++;
+        }
+        return retval;
+    }
 
     unsigned int toRGBCol() { return (toCol(f[0]) << 16) + (toCol(f[1]) << 8) + toCol(f[2]);}
     void degToRad() { *this *= 3.14159265359f/180.f; }
