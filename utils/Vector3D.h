@@ -48,7 +48,40 @@ public:
 	// friend Vector3D operator/ (const Vector3D& a, const Vector3D& b) {return Vector3D( a.x / b.x, a.y / b.y, a.z / b.z );}
 	// bool operator> (const Vector3D& b){return ( x > b.x && y > b.y && z > b.z );}
     friend std::ostream& operator<< (std::ostream& out, const Vector3D& v) { out << "(" << v.get(0) << ";" << v.get(1) << ";" << v.get(2) << ")";  return out;}
-    friend std::istream& operator>> (std::istream& in, Vector3D& v) { in >> v[0] >> v[1] >> v[2];  return in;}
+    friend std::istream& operator>> (std::istream& in, Vector3D& v) { in >> v[0] >> v[1] >> v[2];return in;}
+    void parse(char * buf) {
+        f[0] = fastGetFloat(buf);
+        f[1]=fastGetFloat(buf);
+        f[2] = fastGetFloat(buf); 
+    }
+    float fastGetFloat(char * &buf) {
+        float retval = 0.0;
+        float sign = 1;
+        while (*buf == ' ')
+            buf++;
+        if (('0' > *buf || '9' < *buf) && *buf != '-')
+            return 0.0;
+        if (*buf == '-') {
+            sign = -1;
+            buf++;
+        }
+        while (*buf >= '0' && *buf <= '9') {
+            retval = retval * 10.0f + float(*buf - '0');
+            buf++;
+        }
+        if (*buf == '.') {
+            float s = 0.1f;
+            buf++;
+            while (*buf >= '0' && *buf <= '9') {
+                retval = retval + s * (*buf - '0');
+                s *= 0.1f;
+                buf++;
+            }
+        }
+        return sign * retval;
+    }
+
+
     unsigned int toRGBCol() { return (toCol(f[0]) << 16) + (toCol(f[1]) << 8) + toCol(f[2]);}
     void degToRad() { *this *= 3.14159265359f/180.f; }
 private:
