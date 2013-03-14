@@ -94,7 +94,7 @@ public:
     int fastGetInt(char * &buf) {
         int retval = 0;
         while (*buf >= '0' && *buf <= '9') {
-            retval = retval * 10.0f + float(*buf - '0');
+            retval = retval * 10 + int(*buf - '0');
             buf++;
         }
         return retval;

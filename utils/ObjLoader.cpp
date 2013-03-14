@@ -27,7 +27,6 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
     char cmd[256];
     Vector3D tmpVect;
     string curMat = "";
-    int a, b, c;
     int triscnt = 0;
     map<string, Material*> mats;
     bool wantScaling = scale.sqlength() > EPS;
@@ -139,7 +138,6 @@ void ObjLoader::Load(const char filename[], vector<Triangle*> & tris,
             curMat = cmd;
         }
         else if(strcmp(cmd, "f") == 0) { // triangle
-            Vertex * vert[3];
             for (int i = 0; i < 3; i++) {
                 tri[tID].setVertex(i, 
                     getVertex(
@@ -228,7 +226,6 @@ void ObjLoader::LoadMTL(const char filename[],
 
     char cmd[256];
     Vector3D tmpVect;
-    float tmpFloat;
     while (in >> cmd) {
         if (strcmp(cmd, "newmtl") == 0) {
             in >> cmd;
