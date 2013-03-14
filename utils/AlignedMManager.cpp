@@ -10,7 +10,6 @@ AlignedMManager::AlignedMManager(int preload) :PRELOAD(preload) {
     kdID = 0;
     objID = 0;
     kdhID = 0;
-    releasedKdHelpers.push_back(0);
 }
 
 KdTreeNode * AlignedMManager::getKdNode() {
@@ -94,6 +93,39 @@ void AlignedMManager::releaseKdHelperNodes() {
     kdhID = PRELOAD;
     currkdh = 0;
 }
-
+void AlignedMManager::releaseKdHelperNodes(list<KdHelperList *> & nodes) {
+    nodes.sort();
+    countRefs<KdHelperList> * point = 0;
+    KdHelperList * enpoint = 0;
+    KdHelperList * stpoint = 0;
+    for (list<KdHelperList *> :: iterator it = nodes.begin();
+        it != nodes.end(); it++) {
+        if (!(enpoint > *it && stpoint <= *it) || !point) {
+            for (list< countRefs<KdHelperList> *>::iterator itL = kdhelpnodes.begin();
+                itL != kdhelpnodes.end(); itL++) {
+                point = *itL;
+                enpoint = point->pointer + point->maxsz + 1;
+                stpoint = point->pointer;
+                if (!(enpoint > *it && stpoint <= *it)){
+                    point = 0;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+        if (!point){
+               LogDefault->outStringN("Couldn't find a ref");
+               continue;
+        }
+        point->deloc++;
+        if (point->deloc == point->maxsz) {
+            //LogDefault->outStringN("Deleting one ref");
+            delete [] point->pointer;
+            kdhelpnodes.remove(point);
+            point = 0;
+        }
+    }
+}
 
 AlignedMManager mManager;

@@ -354,6 +354,7 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
             node->getRight()->setObjList(head);
         }
     }
+    mManager.releaseKdHelperNodes(newnodes);
 }
 
 Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {

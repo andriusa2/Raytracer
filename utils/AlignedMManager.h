@@ -15,7 +15,7 @@ struct countRefs{
 };
 
 template<class T>
-countRefs<T>::countRefs(int sz) :deloc(0), maxsz(0) {
+countRefs<T>::countRefs(int sz) :deloc(0), maxsz(sz) {
     pointer = NEW_ALIGNED(T,sz,16);
 }
 
@@ -27,11 +27,10 @@ public:
     ObjList * getObjListNodes(int amount);
     KdHelperList * getKdHelperNode();
     KdHelperList * getKdHelperNodes(int amount);
-    //void releaseKdHelperNodes(list<KdHelperList *> & nodes);
+    void releaseKdHelperNodes(list<KdHelperList *> & nodes);
     void releaseKdHelperNodes();
 private:
     // lst[id][node]
-    list<int> releasedKdHelpers;
     list<KdTreeNode *> kdnodes;
     list<ObjList *> objnodes;
     list< countRefs<KdHelperList> * > kdhelpnodes;
