@@ -43,6 +43,7 @@ void Config::resetDefault() {
     ints["max_depth"] = MAX_DEPTH;
     ints["width"] = DEFAULT_WIDTH;
     ints["height"] = DEFAULT_HEIGHT;
+    ints["threads"] = max(omp_get_max_threads() - 1, 1);
     floats["epsilon"] = EPS;
     strings["scene"] = DEFAULT_SCENE;
 }

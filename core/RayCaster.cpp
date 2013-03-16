@@ -10,9 +10,6 @@ RayCaster::RayCaster(Config& config):
     LogDefault->outValue("width",scrWidth);
     LogDefault->outValue("height",scrHeight);
     LogDefault->outValue("max_depth",maxDepth);
-    int minthreads = omp_get_max_threads()-1;
-    if (minthreads <= 0) minthreads = 1;
-    omp_set_num_threads(minthreads);
     LogDefault->outValue("ompnumthreads",omp_get_max_threads());
     if (config.getIntByName("accumulator") != 0)
         avgBuffer = new Vector3D [scrWidth * scrHeight];

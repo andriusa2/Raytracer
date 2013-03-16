@@ -1,6 +1,9 @@
 #include "./Engine.h"
 #include <Windows.h>
 Engine::Engine(Integrator * integr, Config & config) {
+    if (config.getIntByName("threads") > 0)
+        omp_set_num_threads(config.getIntByName("threads"));
+    else omp_set_num_threads(1);
     scene = new Scene(config);
     integrator = integr;
     integrator->linkScene(scene);
