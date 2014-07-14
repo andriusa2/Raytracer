@@ -19,8 +19,8 @@ KdTree :: KdTree(vector<Triangle *> & tris) {
 void KdTree::Load(vector<Triangle *> & tris) {
     makeTree(tris);
     //DumpTree();
-    scene_bound.left -= Vector3D(EPS,EPS,EPS);
-    scene_bound.right += Vector3D(EPS,EPS,EPS);
+    scene_bound.min_v -= Vector3D(EPS, EPS, EPS);
+    scene_bound.max_v += Vector3D(EPS, EPS, EPS);
     LogDefault->flush();
 }
 
@@ -54,15 +54,18 @@ void KdTree::makeTree(vector<Triangle *> & tris) {
     AABB scene(Vector3D(+INF,+INF,+INF), Vector3D(-INF,-INF,-INF));
     MAX_KD_DEPTH = 8.0f + 1.3f * logf(float(tris.size())) + 0.9f;
     LogDefault->outValue("MAX_KD_DEPTH",MAX_KD_DEPTH);
+    avg_depth = avg_prims = 0.0f;
+    cnt_depth = cnt_prims = min_prims = max_prims = 0;
+    min_prims = 100;
     for (vector<Triangle *>::iterator it = tris.begin();
         it != tris.end(); it++) {
         for (int i = 0; i < 3; i++) {
             help[helpID].data[i] = (*it)->getMinAxis(i);
             help[helpID+1].data[i] = (*it)->getMaxAxis(i);
-            if (help[helpID].data[i] < scene.left[i])
-                scene.left[i] = help[helpID].data[i];
-            if (help[helpID+1].data[i] > scene.right[i])
-                scene.right[i] = help[helpID+1].data[i];
+            if (help[helpID].data[i] < scene.min_v[i])
+                scene.min_v[i] = help[helpID].data[i];
+            if (help[helpID + 1].data[i] > scene.max_v[i])
+                scene.max_v[i] = help[helpID + 1].data[i];
         }
         help[helpID].left = true;
         help[helpID].otherSide = help+(helpID + 1);
@@ -85,13 +88,25 @@ void KdTree::makeTree(vector<Triangle *> & tris) {
             it != tmp_v.end(); it++) {
             if ((it+1) != tmp_v.end())
                 it->pt->next[axis] = (it+1)->pt;
-            else it->pt->next[axis] = 0;
+            else it->pt->next[axis] = nullptr;
+            if (it != tmp_v.begin())
+                it->pt->prev[axis] = (it - 1)->pt;
+            else
+                it->pt->prev[axis] = nullptr;
         }
     }
     // now we have a nice sorted view
     root = new KdTreeNode();
     scene_bound = scene;
     subdivide(heads, root, scene, 0, tris.size(), 0);
+    avg_depth *= 1.0f / float(cnt_depth);
+    avg_prims *= 1.0f / float(cnt_prims);
+    LogDefault->criticalOutValue("Average depth", avg_depth);
+    LogDefault->criticalOutValue("Count leafs", cnt_depth);
+    LogDefault->criticalOutValue("Average prims", avg_prims);
+    LogDefault->criticalOutValue("Leaves with prims", cnt_prims);
+    LogDefault->criticalOutValue("Max prims", max_prims);
+    LogDefault->criticalOutValue("Min prims", min_prims);
     LogDefault->line();
     mManager.releaseKdHelperNodes();
 }
@@ -144,19 +159,38 @@ void KdTree::addTriangles(KdHelperList * head, int axis,
         tmp->otherSide->read=false;
     }
 }
+
+KdHelperList * KdTree::removeFromList(KdHelperList * node, KdHelperList * heads[], int axis)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        if (node->prev[i] == nullptr)
+            heads[i] = node->next[i];
+        else
+            node->prev[i]->next[i] = node->next[i];
+
+        if (node->next[i] != nullptr)
+            node->next[i]->prev[i] = node->prev[i];
+    }
+    if (node->prev[axis] == nullptr)
+        return nullptr;
+    else
+        return node->prev[axis];
+}
+
 void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
                        AABB box, int depth, int triangles, int openL)
 {
     // depth is tested somewhere else, should always fail
     if (depth > MAX_KD_DEPTH)
         LogDefault->outStringN("KdTree went past max_depth");
-    Vector3D sz = box.right - box.left;
+    Vector3D sz = box.max_v - box.min_v;
     // surface area/volume
-    float SAV = sz[0] * sz[1] + sz[0] * sz[2] + sz[1] * sz[2];
-    SAV = 1.0f / SAV;
+    const float SAV = 1.0f / (sz[0] * sz[1] + sz[0] * sz[2] + sz[1] * sz[2]);
     int minAxis = -1;
-    float minCost = INF;
-    float bestPos = -INF;
+	float minCost[3] = { INF, INF, INF };
+	float bestPosA[3] = { -INF, -INF, -INF };
+//#pragma omp parallel for
     for (int axis = 0; axis < 3; axis++) {
         KdHelperList * tmp = heads[axis];
         
@@ -182,18 +216,18 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
                 }
                 tmp = tmp->next[axis];
             }
-            if (spos > box.left[axis]+EPS && spos < box.right[axis]-EPS) {
+            if (spos > box.min_v[axis] + EPS && spos < box.max_v[axis] - EPS) {
                 // as we don't want to make a split so close to the edge of AABB
-                lsz[axis] = spos - box.left[axis];
+                lsz[axis] = spos - box.min_v[axis];
                 rsz[axis] = sz[axis] - lsz[axis];
                 float SA1 = lsz[0] * lsz[1] + lsz[0] * lsz[2] + lsz[1] * lsz[2];
                 float SA2 = rsz[0] * rsz[1] + rsz[0] * rsz[2] + rsz[1] * rsz[2];
                 float splitcost =
                     KDCTRAV + (SA1 * (n1+n4+n3) + SA2 * (n2 - n4)) * SAV * KDCINTR;
-                if (splitcost < minCost) {
-                    minCost = splitcost;
-                    bestPos = spos;
-                    minAxis = axis;
+                if (splitcost < minCost[axis]) {
+					minCost[axis] = splitcost;
+					bestPosA[axis] = spos;
+                    //minAxis = axis;
                 }
             }
             n1 += n3 + n4;
@@ -202,6 +236,19 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
             n4 = 0;
         }
     }
+    float bestPos;
+    // determine minAxis
+    if (minCost[0] < minCost[1])
+        if (minCost[0] < minCost[2])
+            minAxis = 0;
+        else minAxis = 2;
+    else if (minCost[1] < minCost[2])
+            minAxis = 1;
+        else minAxis = 2;
+    bestPos = bestPosA[minAxis];
+    if (minCost[minAxis] == INF)
+        minAxis = -1;
+
     if (minAxis == -1 || depth >= MAX_KD_DEPTH) {
         // make a child out of this node
         node->setLeaf(true);
@@ -209,6 +256,12 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
         addTriangles(heads[0], 0, head, 0, KdTree::testAll);
         //LogDefault->criticalOutValue("MadeIntLeaf, objects", calcTriangles(heads[0],0,0,KdTree::testAll));
         node->setObjList(head);
+        max_prims = max(max_prims, calcTriangles(heads[0], 0, 0, KdTree::testAll));
+        min_prims = min(min_prims, calcTriangles(heads[0], 0, 0, KdTree::testAll));
+        avg_prims += calcTriangles(heads[0], 0, 0, KdTree::testAll);
+        cnt_prims++;
+        avg_depth += depth;
+        cnt_depth++;
         return ;
     }
     // so we found some axis and split position...
@@ -222,51 +275,140 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
      * also calculate how many primitives are on
      * one side or another
      */
-    
+
+    AABB box_l(box);
+    AABB box_r(box);
+    box_l.max_v[minAxis] = bestPos;
+    box_r.min_v[minAxis] = bestPos;
     KdHelperList * tmp = heads[minAxis];
     list<KdHelperList*> newnodes;
+    list<KdHelperList*> newnodes_alloc;
     while (tmp) {
         if (tmp->left) {
             if (tmp->data[minAxis] < bestPos) {
                 if (tmp->otherSide->data[minAxis] > bestPos) {
-                    KdHelperList * left = mManager.getKdHelperNode();
-                    KdHelperList * right = mManager.getKdHelperNode();
-                    left->otherSide = tmp;
-                    right->otherSide = tmp->otherSide;
-                    right->left = true;
-                    left->tri = tmp->tri;
-                    right->tri = tmp->tri;
-                    for (int i = 0; i < 3; i++){
-                        left->data[i] = tmp->otherSide->data[i];
-                        right->data[i] = tmp->data[i];
+                    // this one goes over the spos, so drop both ends from the list
+                    // and create few new ones
+                    // perfect clipping!
+                    //*
+                    KdHelperList * start_left = tmp;
+                    KdHelperList * end_right = tmp->otherSide;
+                    tmp = removeFromList(start_left, heads, minAxis);
+                    removeFromList(end_right, heads, minAxis);
+
+                    KdHelperList * end_left = mManager.getKdHelperNode();
+                    KdHelperList * start_right = mManager.getKdHelperNode();
+
+                    newnodes_alloc.push_back(end_left);
+                    newnodes_alloc.push_back(start_right);
+
+                    start_right->otherSide = end_right;
+                    end_right->otherSide = start_right;
+
+                    start_left->otherSide = end_left;
+                    end_left->otherSide = start_left;
+
+                    start_left->left = true;
+                    start_right->left = true;
+                    start_left->goes_left = true;
+                    end_left->goes_left = true;
+                    start_right->goes_left = false;
+                    end_right->goes_left = false;
+                    start_right->tri = start_left->tri;
+
+                    end_left->tri = start_left->tri;
+
+                    AABB l = start_left->tri->getClippedAABB(box_l);
+                    AABB r = start_left->tri->getClippedAABB(box_r);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        
+                        start_left->data[i] = l.min_v.get(i);
+                        end_left->data[i] = l.max_v.get(i);
+                        
+                        end_left->next[i] = nullptr;
+                        start_right->next[i] = nullptr;
+                        end_right->next[i] = nullptr;
+                        
+                        start_right->data[i] = r.min_v.get(i);
+                        end_right->data[i] = r.max_v.get(i);
                     }
-                    left->otherSide->otherSide = left;
-                    right->otherSide->otherSide = right;
-                    left->data[minAxis] = bestPos;
-                    right->data[minAxis] = bestPos + 2 * EPS;
-                    newnodes.push_back(left);
-                    newnodes.push_back(right);
+
+                    if (l.valid() && l.surfaceArea() > EPS)
+                    {
+                        newnodes.push_back(start_left);
+                        newnodes.push_back(end_left);
+
+                    }
+                    if (r.valid() && r.surfaceArea() > EPS)
+                    {
+                        newnodes.push_back(start_right);
+                        newnodes.push_back(end_right);
+
+                    }
+                    /*/
+                    KdHelperList * end_left = mManager.getKdHelperNode();
+                    KdHelperList * start_right = mManager.getKdHelperNode();
+                    start_right->otherSide = tmp;
+                    end_left->goes_left = false;
+                    tmp->goes_left = true;
+                    tmp->otherSide->goes_left = false;
+                    start_right->goes_left = true;
+                    end_left->otherSide = tmp->otherSide;
+                    end_left->left = true;
+                    start_right->tri = tmp->tri;
+                    end_left->tri = tmp->tri;
+                    for (int i = 0; i < 3; i++){
+                        start_right->data[i] = tmp->otherSide->data[i];
+                        end_left->data[i] = tmp->data[i];
+                    }
+                    start_right->otherSide->otherSide = start_right;
+                    end_left->otherSide->otherSide = end_left;
+                    start_right->data[minAxis] = bestPos;
+                    end_left->data[minAxis] = bestPos + 2 * EPS;
+                    newnodes_alloc.push_back(end_left);
+                    newnodes_alloc.push_back(start_right);
+                    newnodes.push_back(end_left);
+                    newnodes.push_back(start_right);//*/
+                }
+                else
+                {
+                    tmp->goes_left = true;
+                    tmp->otherSide->goes_left = true;
                 }
             }
+            else
+            {
+                tmp->goes_left = false;
+                tmp->otherSide->goes_left = false;
+            }
         }
-        tmp = tmp->next[minAxis];
+        if (tmp)
+            tmp = tmp->next[minAxis];
+        else
+            tmp = heads[minAxis];
     }
     for (int axis = 0; axis < 3; axis++) {
         newnodes.sort(sortByAxis[axis]);
         KdHelperList * tmpHead = heads[axis];
-        for (list<KdHelperList *>::iterator it = newnodes.begin();
-            it != newnodes.end(); it++) {
-            if (tmpHead->data[axis] > (*it)->data[axis]) {
+        for (auto it = newnodes.begin(); it != newnodes.end(); it++) {
+            if (tmpHead->data[axis] > (*it)->data[axis]) { // well this means that the current node should come before another
                 (*it)->next[axis] = tmpHead;
+                (*it)->prev[axis] = tmpHead->prev[axis];
+                tmpHead->prev[axis] = *it;
                 tmpHead = *it;
-                heads[axis] = tmpHead;
+                if (tmpHead->prev[axis] == nullptr)
+                    heads[axis] = tmpHead;
                 continue;
             }
             while (tmpHead->next[axis] && tmpHead->next[axis]->data[axis] <= (*it)->data[axis]) {
                 tmpHead = tmpHead->next[axis];
             }
             (*it)->next[axis] = tmpHead->next[axis];
-            tmpHead->next[axis] = (*it);
+            (*it)->prev[axis] = tmpHead;
+            if ((*it)->next[axis] != nullptr)
+                (*it)->next[axis]->prev[axis] = *it;
+            tmpHead->next[axis] = *it;
             tmpHead = *it;
         }
     }
@@ -280,16 +422,22 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
     KdHelperList * r_heads[3] = {};
     KdHelperList * curr_r, * curr_l;
     for (int i = 0; i < 3; i++) {
-        curr_l = 0;
-        curr_r = 0;
+        curr_l = nullptr;
+        curr_r = nullptr;
         KdHelperList * tmp = heads[i];
         while (tmp) {
-            if (tmp->data[minAxis] <= (bestPos) && tmp->otherSide->data[minAxis] <= (bestPos)) { // to left!
-                if (l_heads[i]) {
+            /*if (tmp->data[minAxis] <= (bestPos)  // left side is on the left
+                && tmp->otherSide->data[minAxis] <= (bestPos) // right side on the left
+                )*/
+            if (tmp->goes_left)
+            { // to left!
+                if (l_heads[i]) { // if we have left head for it, just append to the list
                     curr_l->next[i] = tmp;
+                    tmp->prev[i] = curr_l;
                     curr_l = tmp;
                 }
-                else {
+                else { // or create new head
+                    tmp->prev[i] = nullptr;
                     l_heads[i] = tmp;
                     curr_l = tmp;
                 }
@@ -299,10 +447,12 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
             else {
                 if (r_heads[i]) {
                     curr_r->next[i] = tmp;
+                    tmp->prev[i] = curr_r;
                     curr_r = tmp;
                 }
                 else {
                     r_heads[i] = tmp;
+                    tmp->prev[i] = nullptr;
                     curr_r = tmp;
                 }
                 if (tmp->left) n_right_start++;
@@ -321,15 +471,14 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
     int n_left = n_left_start+openL;
     int n_right = n_right_end;
     int n_left_s = openL + n_left_start - n_left_end;
-    AABB box_l(box);
-    AABB box_r(box);
-    box_l.right[minAxis]=bestPos;
-    box_r.left[minAxis]=bestPos;
-    int n_left_in = calcTriangles(l_heads[minAxis],minAxis,bestPos, KdTree::testLeft);
-    if (n_left_in > 2) 
+    unsigned int n_left_in = calcTriangles(l_heads[minAxis],minAxis,bestPos, KdTree::testLeft);
+    if (n_left_in > PRIMITIVE_CUTOFF)
         subdivide(l_heads, node->getLeft(),box_l,depth+1, n_left,openL);
     else {
         node->getLeft()->setLeaf(true);
+
+        avg_depth += depth;
+        cnt_depth++;
         if (n_left_in == 0)
             node->getLeft()->setObjList(0);
         else {
@@ -337,14 +486,20 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
             addTriangles(l_heads[minAxis], minAxis, head, bestPos, KdTree::testLeft);
             //LogDefault->criticalOutValue("MadeLeftLeaf, objects", n_left_in);
             node->getLeft()->setObjList(head);
+            max_prims = max(max_prims, n_left_in);
+            min_prims = min(min_prims, n_left_in);
+            avg_prims += n_left_in;
+            cnt_prims++;
         }
     }
-    int n_right_in = calcTriangles(r_heads[minAxis], minAxis, bestPos, KdTree::testRight);
+    unsigned int n_right_in = calcTriangles(r_heads[minAxis], minAxis, bestPos, KdTree::testRight);
 
-    if (n_right_in > 2)
+    if (n_right_in > PRIMITIVE_CUTOFF)
         subdivide(r_heads, node->getRight(), box_r, depth+1, n_right, n_left_s);
     else {
         node->getRight()->setLeaf(true);
+        avg_depth += depth;
+        cnt_depth++;
         if (n_right_in == 0)
             node->getRight()->setObjList(0);
         else {
@@ -352,9 +507,13 @@ void KdTree::subdivide(KdHelperList * heads[], KdTreeNode * node,
             addTriangles(r_heads[minAxis], minAxis, head, bestPos, KdTree::testRight);
             //LogDefault->criticalOutValue("MadeRightLeaf, objects", n_right_in);
             node->getRight()->setObjList(head);
+            max_prims = max(max_prims, n_right_in);
+            min_prims = min(min_prims, n_right_in);
+            avg_prims += n_right_in;
+            cnt_prims++;
         }
     }
-    mManager.releaseKdHelperNodes(newnodes);
+    mManager.releaseKdHelperNodes(newnodes_alloc);
 }
 
 Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
@@ -362,8 +521,8 @@ Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
     float tnear = 0;
     float tfar = dist;
     float t;
-    Vector3D p1 = scene_bound.left;
-    Vector3D p2 = scene_bound.right;
+    Vector3D p1 = scene_bound.min_v;
+    Vector3D p2 = scene_bound.max_v;
     Vector3D &D = ray.getD();
     Vector3D &O = ray.getO();
 
@@ -474,8 +633,8 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
     float tnear = 0;
     float tfar = dist;
     float t;
-    Vector3D p1 = scene_bound.left;
-    Vector3D p2 = scene_bound.right;
+    Vector3D p1 = scene_bound.min_v;
+    Vector3D p2 = scene_bound.max_v;
     Vector3D &D = ray.getD();
     Vector3D &O = ray.getO();
 
@@ -617,8 +776,8 @@ Triangle * KdTree::recursiveIntersection(Ray ray, float & dist, KdTreeNode * nod
     else {
         AABB left = box;
         AABB right = box;
-        left.right[node->getAxis()] = node->getSplitPos();
-        right.left[node->getAxis()] = node->getSplitPos();
+        left.max_v[node->getAxis()] = node->getSplitPos();
+        right.min_v[node->getAxis()] = node->getSplitPos();
         if (ray.direction[node->getAxis()] == 0) {
             if (ray.origin[node->getAxis()] <= node->getSplitPos())
                 return recursiveIntersection(ray, dist, node->getLeft(), left);

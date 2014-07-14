@@ -32,11 +32,13 @@ public:
     Triangle * intersect(Ray& ray, float& dist);
     Triangle * debugIntersect(Ray& ray, float &dist);
     void DumpTree();
+    void set_primitive_cutoff(int a) { PRIMITIVE_CUTOFF = a; }
 private:
     void DumpNode(KdTreeNode * node);
     void makeTree(vector<Triangle *> & tris);
     void subdivide(KdHelperList * heads[], KdTreeNode * node, AABB box,
         int depth, int triangles, int openL);
+    KdHelperList * removeFromList(KdHelperList * node, KdHelperList * heads[], int axis);
     unsigned int calcTriangles(KdHelperList * head, int axis,
         float splitpos, fpKHListTest test);
     void addTriangles(KdHelperList * head, int axis,
@@ -49,6 +51,13 @@ private:
     KdTreeNode * root;    
     AABB scene_bound;
     int MAX_KD_DEPTH;
+    int PRIMITIVE_CUTOFF;
+    unsigned int max_prims;
+    unsigned int min_prims;
+    float avg_prims;
+    float cnt_prims;
+    float avg_depth;
+    float cnt_depth;
     KdStack ** mStack;
     fpKHListSort sortByAxis[3];
 };

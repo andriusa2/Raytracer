@@ -26,7 +26,7 @@ extern dsfmt_t* __dsfmt_sz; // should be explicitly initialized somewhere
 const float DEFCAMSPEED = 10.0f;
 #define GET_RND(id) dsfmt_genrand_close_open(__dsfmt_sz + id)
 #define DEFAULT_CONFIG "config.ini"
-#define DEFAULT_LOG "raytracer.log"
+#define DEFAULT_LOG "raytracer_default.log"
 #define DEFAULT_SCENE "scene.ini"
 #define COL_SCREEN 0xFF88FF88
 //hash table stuff

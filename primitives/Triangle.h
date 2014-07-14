@@ -2,10 +2,13 @@
 #define TRIANGLE_H
 
 #include <ostream>
+#include <vector>
+#include <algorithm>
 
 #include "../utils/Vector3D.h"
 #include "../utils/Ray.h"
 #include "./Vertex.h"
+#include "./AABB.h"
 #include "../materials/Material.h"
 
 using namespace std;
@@ -33,6 +36,7 @@ public:
     float getMinAxis(unsigned int axis);
     float getMaxAxis(unsigned int axis);
     void recalc(bool recalcNormals);
+    AABB getClippedAABB(const AABB & aabb) const;
 private:
     void recalcNorms();
     void precompute();

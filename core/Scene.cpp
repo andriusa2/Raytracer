@@ -3,7 +3,18 @@
 Scene::Scene(Config& config) {
     LogDefault->criticalOutValue("ScenePath", config.getStringByName("scene"));
     loadScene(config.getStringByName("scene").c_str());
+	LogDefault->outStringN("Building kdTree");
+    float start;
+#pragma omp master
+    {
+        start = omp_get_wtime();
+    }
+    tree.set_primitive_cutoff(max(config.getIntByName("primitive_cutoff"), 2));
     tree.Load(triangles);
+#pragma omp master
+    {
+        LogDefault->criticalOutValue("Building kdTree took", (omp_get_wtime() - start)*1000.0);
+    }
 }
 
 Scene::~Scene() {

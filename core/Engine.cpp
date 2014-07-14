@@ -13,11 +13,16 @@ Engine::Engine(Integrator * integr, Config & config) {
 }
 
 void Engine::trace(unsigned int buffer[]) {
-    
-    int start = GetTickCount();
+    float start;
+#pragma omp master
+    {
+        start = omp_get_wtime();
+    }
     integrator->render(buffer);
-    
-    LogDefault->criticalOutValue("Rendering took",GetTickCount()-start);
+#pragma omp master
+    {
+        LogDefault->criticalOutValue("Rendering took", (omp_get_wtime() - start)*1000.0);
+    }
 }
 
 Scene * Engine::getScene() {

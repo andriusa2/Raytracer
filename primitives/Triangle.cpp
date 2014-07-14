@@ -189,3 +189,79 @@ void Triangle::recalc(bool recalcNormals) {
         recalcNorms();
     precompute();
 }
+static int sutherlandHodgman(Vector3D input[], int inCount, Vector3D *output, int axis,
+    double splitPos, bool isMinimum) {
+    if (inCount < 3)
+        return 0;
+
+    Vector3D cur = input[0];
+    double sign = isMinimum ? 1.0f : -1.0f;
+    double distance = sign * (cur.get(axis) - splitPos);
+    bool  curIsInside = (distance >= 0);
+    int   outCount = 0;
+
+    for (int i = 0; i < inCount; ++i) {
+        int nextIdx = i + 1;
+        if (nextIdx == inCount)
+            nextIdx = 0;
+        Vector3D next = input[nextIdx];
+        distance = sign * (next.get(axis) - splitPos);
+        bool nextIsInside = (distance >= 0);
+
+        if (curIsInside && nextIsInside) {
+            /* Both this and the next vertex are inside, add to the list */
+            output[outCount++] = next;
+        }
+        else if (curIsInside && !nextIsInside) {
+            /* Going outside -- add the intersection */
+            double t = (splitPos - cur.get(axis)) / (next.get(axis) - cur.get(axis));
+            Vector3D p = cur + (next - cur) * t;
+            p[axis] = splitPos; // Avoid roundoff errors
+            output[outCount++] = p;
+        }
+        else if (!curIsInside && nextIsInside) {
+            /* Coming back inside -- add the intersection + next vertex */
+            double t = (splitPos - cur[axis]) / (next[axis] - cur[axis]);
+            Vector3D p = cur + (next - cur) * t;
+            p[axis] = splitPos; // Avoid roundoff errors
+            output[outCount++] = p;
+            output[outCount++] = next;
+        }
+        else {
+            /* Entirely outside - do not add anything */
+        }
+        cur = next;
+        curIsInside = nextIsInside;
+    }
+    return outCount;
+}
+
+
+AABB Triangle::getClippedAABB(const AABB &aabb) const {
+    /* Reserve room for some additional vertices */
+    // todo track how many vertices are used really
+    Vector3D vertices1[30], vertices2[30];
+    int nVertices = 3;
+
+    for (int i = 0; i<3; ++i)
+        vertices1[i] = getVertex(i)->getPos();
+
+    for (int axis = 0; axis<3; ++axis) {
+        nVertices = sutherlandHodgman(vertices1, nVertices, vertices2, axis, aabb.min_v.get(axis), true);
+        nVertices = sutherlandHodgman(vertices2, nVertices, vertices1, axis, aabb.max_v.get(axis), false);
+    }
+
+    AABB result;
+    for (int i = 0; i<nVertices; ++i) {
+        for (int j = 0; j<3; ++j) {
+            result.min_v[j] = std::min(result.min_v[j], vertices1[i][j]);
+            result.max_v[j] = std::max(result.max_v[j], vertices1[i][j]);
+        }
+    }
+    for (int i = 0; i<3; ++i) {
+        result.min_v[i] = std::max(result.min_v[i], aabb.min_v.get(i));
+        result.max_v[i] = std::min(result.max_v[i], aabb.max_v.get(i));
+    }
+
+    return result;
+}

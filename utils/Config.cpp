@@ -1,4 +1,5 @@
 #include "./Config.h"
+#include <algorithm>
 
 Config::Config() {
     resetDefault();
