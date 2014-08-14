@@ -36,6 +36,7 @@ public:
     void parseKey(unsigned int vkey);
     friend std::ostream& operator<< (std::ostream &out, const Camera & cam);
 private:
+    void dumpLoc();
     void fixDirs();
     void go(int mask);
     /* turn by xz radians in the front x right panel

@@ -28,7 +28,7 @@ private:
 template<class T>
 void Logger::criticalOutValue(const char name[], const T & value){
     outValue(name, value);
-    flush();
+    //flush();
 }
 // as long as T has ostream operator<<, everything is fine
 template<class T>

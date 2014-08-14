@@ -26,6 +26,7 @@ public:
     void setMat(Material * a);
     int intersect(Ray& ray, float& dist, float& u, float& v)const;
     int intersect(Ray& ray, float& dist)const;
+    __m128 intersectPack(__m128 orig[], __m128 rdir[], __m128 & dist, __m128 & tnear) const;
     Vector3D getNormal() const;
     Vector3D getNormal(const float& u, const float& v) const;
     void normalize();
@@ -45,6 +46,7 @@ private:
     int k;
     float nu, nv, nd;
     float bnu, bnv, cnu, cnv;
+    __m128 nu_, nv_, nd_, bnu_, bnv_, cnu_, cnv_;
 };
 
 #endif

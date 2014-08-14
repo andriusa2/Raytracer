@@ -8,7 +8,7 @@ class Vector3D {
 public:
     Vector3D() { f[0] = 0.0f, f[1] = 0.0f, f[2] = 0.0f; }
     Vector3D(float x, float y, float z) {f[0]=x, f[1] = y, f[2] = z;}
-    
+    Vector3D(Vector3D&& o){ f[0] = std::move(o.f[0]), f[1] = std::move(o.f[1]), f[2] = std::move(o.f[2]); }
     // some getters, etc
     float x() const {return f[0];}
     float y() const {return f[1];}

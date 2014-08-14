@@ -17,6 +17,13 @@ public:
 	Vector3D pb;
 	int prev, dummy1, dummy2;
 };
+__declspec(align(16)) class KdStackPack
+{
+public:
+    KdTreeNode * node; // 4B
+    int prev, mask, dummy2; // 12B 
+    __m128 tnear, tfar;
+};
 typedef bool (*fpKHListTest)(float, float);
 typedef bool (*fpKHListSort)(KdHelperList *, KdHelperList*);
 template<unsigned int AXIS> bool lessAxis(KdHelperList * a, KdHelperList * b) {
@@ -29,10 +36,12 @@ public:
     void Load(vector<Triangle *> & tris);
 
     Triangle * intersect(Ray& ray, float& dist, float& u, float& v);
-    Triangle * intersect(Ray& ray, float& dist);
+    Triangle * intersect(Ray& ray, float& dist, bool perf=false);
+    void intersectPacket(__m128 org4[], __m128 dir4[], __m128 & dist, Triangle * triangles[], bool perf_anal = false, bool early_out=false);
     Triangle * debugIntersect(Ray& ray, float &dist);
     void DumpTree();
     void set_primitive_cutoff(int a) { PRIMITIVE_CUTOFF = a; }
+    void outBench();
 private:
     void DumpNode(KdTreeNode * node);
     void makeTree(vector<Triangle *> & tris);
@@ -55,10 +64,15 @@ private:
     unsigned int max_prims;
     unsigned int min_prims;
     float avg_prims;
+
+    int m_stack_size;
     float cnt_prims;
     float avg_depth;
     float cnt_depth;
+    float nodes_tested[8], leaves_checked[8], tris_checked[8], tests[8];
+    float hits[8];
     KdStack ** mStack;
+    KdStackPack ** mPackStack;
     fpKHListSort sortByAxis[3];
 };
 

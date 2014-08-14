@@ -67,6 +67,58 @@ int Triangle::intersect(Ray& ray, float& dist) const {
 	return HIT;
 }
 
+
+__m128 Triangle::intersectPack(__m128 orig[], __m128 dir[], __m128 & dist, __m128 & tnear) const {
+    const unsigned int& ku = MOD3_ACCEL[k + 1];
+    const unsigned int& kv = MOD3_ACCEL[k + 2];
+    const Vector3D& A = vertices[0]->getPos();
+    const __m128 verts[] = { _mm_set_ps1(A.get(ku)), _mm_set_ps1(A.get(kv)) };
+    //(nd - O.get(k) - nu*O.get(ku) - nv*O.get(kv)) / 
+    const __m128 nd_ = _mm_set_ps1(nd);
+    const __m128 nu_ = _mm_set_ps1(nu);
+    const __m128 nv_ = _mm_set_ps1(nv);
+    const __m128 bnu_ = _mm_set_ps1(bnu);
+    const __m128 bnv_ = _mm_set_ps1(bnv);
+    const __m128 cnu_ = _mm_set_ps1(cnu);
+    const __m128 cnv_ = _mm_set_ps1(cnv);
+    const __m128 up =
+        _mm_sub_ps(
+        nd_,
+        _mm_add_ps(
+            orig[k],
+            _mm_add_ps(
+                _mm_mul_ps(nu_,orig[ku]),
+                _mm_mul_ps(nv_, orig[kv])
+            )
+        ));
+    //(D.get(k) + nu*D.get(ku) + nv*D.get(kv));
+    const __m128 bot = _mm_add_ps(dir[k], _mm_add_ps(_mm_mul_ps(nu_, dir[ku]), _mm_mul_ps(nv_, dir[kv])));
+    const __m128 t = _mm_div_ps(up, bot);
+    
+    __m128 retval = _mm_cmpge_ps(dist, t);
+    retval = _mm_and_ps(retval, _mm_cmpge_ps(t, tnear));
+    //const float hu = O.get(ku) + t*D.get(ku) - A.get(ku);
+    //const float hv = O.get(kv) + t*D.get(kv) - A.get(kv);
+    if (_mm_movemask_ps(retval) == 0)
+        return retval;
+    const __m128 hu = _mm_add_ps(orig[ku], _mm_sub_ps(_mm_mul_ps(t, dir[ku]), verts[0]));
+    const __m128 hv = _mm_add_ps(orig[kv], _mm_sub_ps(_mm_mul_ps(t, dir[kv]), verts[1]));
+    //const float alpha = hv*bnu + hu*bnv;
+    
+    const __m128 alpha = _mm_add_ps(_mm_mul_ps(hv, bnu_), _mm_mul_ps(hu, bnv_));
+
+    retval = _mm_and_ps(retval, _mm_cmpge_ps(alpha, _mm_setzero_ps()));
+    
+    //const float beta = hu*cnu + hv*cnv;
+    
+    const __m128 beta = _mm_add_ps(_mm_mul_ps(hu, cnu_), _mm_mul_ps(hv, cnv_));
+    retval = _mm_and_ps(retval, _mm_cmpge_ps(beta, _mm_setzero_ps()));
+
+    retval = _mm_and_ps(retval, _mm_cmple_ps(_mm_add_ps(alpha, beta), _mm_set_ps1(1.0f)));
+    dist = _mm_or_ps(_mm_and_ps(t, retval), _mm_andnot_ps(retval, dist));
+    return retval;
+}
+
 Vector3D Triangle::getNormal() const {
     return vertices[0]->getNormal();
 }
@@ -127,6 +179,14 @@ void Triangle::precompute() {
 	bnv=b[v]*(-kofe);
 	cnu=c[v]*kofe;
 	cnv=c[u]*(-kofe);
+
+    nd_ = _mm_set_ps1(nd);
+    nu_ = _mm_set_ps1(nu);
+    nv_ = _mm_set_ps1(nv);
+    bnu_ = _mm_set_ps1(bnu);
+    bnv_ = _mm_set_ps1(bnv);
+    cnu_ = _mm_set_ps1(cnu);
+    cnv_ = _mm_set_ps1(cnv);
 }
 void Triangle::recalcNorms() {
    	Vector3D A=vertices[0]->getPos();
@@ -152,7 +212,6 @@ ostream& operator<< (ostream& out, const Triangle& tri) {
 
 Vector3D Triangle::sampleSurface() const {
     // try to sample the surface uniformally
-    Vector3D retval = V3D_BLANK;
     const Vector3D& a = vertices[0]->getPos();
     const Vector3D& b = vertices[1]->getPos();
     const Vector3D& c = vertices[2]->getPos();

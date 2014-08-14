@@ -1,9 +1,17 @@
 #include "./KdTree.h"
-
+#include <stack>
 KdTree::KdTree() : root(0) {   
+
     mStack = new KdStack*[8];
-    for (int i = 0; i < 8; i++)
-        mStack[i] = NEW_ALIGNED(KdStack,256,16);
+    mPackStack = new KdStackPack*[8];
+    for (int i = 0; i < 8; i++){
+        mStack[i] = NEW_ALIGNED(KdStack, 256, 16);
+        mPackStack[i] = NEW_ALIGNED(KdStackPack, 256, 16);
+        tests[i] = 0;
+        nodes_tested[i] = 0;
+        tris_checked[i] = 0;
+        leaves_checked[i] = 0;
+    }
     sortByAxis[0] = lessAxis<0>;
     sortByAxis[1] = lessAxis<1>;
     sortByAxis[2] = lessAxis<2>;
@@ -12,8 +20,15 @@ KdTree::KdTree() : root(0) {
 KdTree :: KdTree(vector<Triangle *> & tris) {
     makeTree(tris);
     mStack = new KdStack*[8];
-    for (int i = 0; i < 8; i++)
-        mStack[i] = NEW_ALIGNED(KdStack,256,16);
+    mPackStack = new KdStackPack*[8];
+    for (int i = 0; i < 8; i++){
+        mStack[i] = NEW_ALIGNED(KdStack, 256, 16);
+        mPackStack[i] = NEW_ALIGNED(KdStackPack, 256, 16);
+    }
+
+    sortByAxis[0] = lessAxis<0>;
+    sortByAxis[1] = lessAxis<1>;
+    sortByAxis[2] = lessAxis<2>;
 }
 
 void KdTree::Load(vector<Triangle *> & tris) {
@@ -48,6 +63,7 @@ void KdTree::makeTree(vector<Triangle *> & tris) {
     // make an axis-based sorted list of primitive
     // start and end-points
 
+    m_stack_size = 0;
     KdHelperList * help = mManager.getKdHelperNodes(tris.size() * 2);
     KdHelperList * heads[3] = {};
     int helpID = 0;
@@ -628,7 +644,7 @@ Triangle * KdTree::intersect(Ray & ray, float & dist, float & u, float & v) {
 }
 
 
-Triangle * KdTree::intersect(Ray & ray, float & dist) {
+Triangle * KdTree::intersect(Ray & ray, float & dist, bool perf) {
     Triangle * retval = 0;
     float tnear = 0;
     float tfar = dist;
@@ -638,7 +654,7 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
     Vector3D &D = ray.getD();
     Vector3D &O = ray.getO();
 
-    for (int i = 0; i < 3; i++) {
+    /*for (int i = 0; i < 3; i++) {
         if (D.get(i) < 0) {
             if (O.get(i) < p1.get(i))
                 return retval;
@@ -678,6 +694,8 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
         if (tnear > tfar) return false;
     }
     int threadID = omp_get_thread_num();
+    if (perf)
+        tests[threadID] += 1.0f;
     int entry = 0;
     int exit = 1;
     KdTreeNode *farchild;
@@ -695,12 +713,14 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
     float pr[3] = {1.0f/D.get(0), 1.0f/D.get(1), 1.0f/D.get(2)};
     while (currnode) {
         while (!currnode->isLeaf()) {
+            if (perf)
+                nodes_tested[threadID] += 1.0f;
             const float & splitPos = currnode->getSplitPos();
             const int & axis = currnode->getAxis();
-            if (stack[entry].pb.get(axis) < splitPos) {
+            if (stack[entry].pb.get(axis) <= splitPos) {
                 currnode = currnode->getLeft();
                 farchild = currnode+1;
-                if (stack[exit].pb.get(axis) < splitPos) continue;
+                if (stack[exit].pb.get(axis) <= splitPos) continue;
             }
             else {
                 farchild = currnode->getLeft();
@@ -718,7 +738,11 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
         }
         ObjList * head = currnode->getObjList();
         float d = stack[exit].t+EPS;
+        if (perf)
+            leaves_checked[threadID] += 1.0f;
         while (head) {
+            if (perf)
+                tris_checked[threadID] += 1.0f;
             Triangle * tri = head->getTriangle();
             int result;
             if (result = tri->intersect(ray, d)) {
@@ -733,6 +757,238 @@ Triangle * KdTree::intersect(Ray & ray, float & dist) {
         exit = stack[entry].prev;
     }
     return retval;
+}
+
+__forceinline static int CountSignBits4(const __m128 & n4) {
+    static const int bits[] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
+    return bits[_mm_movemask_ps(n4)];
+}
+void KdTree::intersectPacket(__m128 org4[], __m128 dir4[], __m128 & dist, Triangle * triangles[], bool perf_anal, bool early_out) {
+    Vector3D p1 = scene_bound.min_v;
+    Vector3D p2 = scene_bound.max_v;
+    //__m128 org4[3];
+    __m128 rdir4[3];// , dir4[3];
+    __m128 near4 = _mm_set_ps1(EPS), far4 = dist;
+    /*
+    for (int i = 0; i < 3; i++) {
+        float t1 = (p1.get(i) - O.get(i))/D.get(i);
+        float t2 = (p2.get(i) - O.get(i))/D.get(i);
+        if (t1 > t2) {
+            float c = t2;
+            t2 = t1;
+            t1 = c;
+        }
+        if (t1 > tnear) tnear = t1;
+        if (t2 < tfar) tfar = t2;
+        if (tnear > tfar) return false;
+    }
+    */
+    for (int i = 0; i < 3; i++) {
+        // moar precision
+        rdir4[i] = _mm_div_ps(_mm_set_ps1(1.0f), dir4[i]);
+        __m128 t1 = _mm_mul_ps(_mm_sub_ps(_mm_set_ps1(p1.get(i)), org4[i]), rdir4[i]);
+        __m128 t2 = _mm_mul_ps(_mm_sub_ps(_mm_set_ps1(p2.get(i)), org4[i]), rdir4[i]);
+        near4 = _mm_max_ps(_mm_min_ps(t1, t2), near4);
+        far4 = _mm_min_ps(_mm_max_ps(t1, t2), far4);
+    }
+    triangles[0] = triangles[1] = triangles[2] = triangles[3] = nullptr;
+    //far4 = _mm_min_ps(dist, _mm_add_ps(_mm_set_ps1(EPS), far4));
+
+#define BLEND(a,b,f) _mm_or_ps(_mm_and_ps(f,a),_mm_andnot_ps(f,b))
+    const __m128 mix0f = _mm_castsi128_ps(_mm_set1_epi32(0x0000ffff));
+
+    int threadID = omp_get_thread_num();
+    int entry = 0;
+    int exit = 1;
+    int mask = 16 - 1; // which nodes could hit stuff
+    KdTreeNode *farchild;
+    KdTreeNode *currnode;
+    currnode = root;
+    
+    KdStackPack * stack = mPackStack[threadID];
+    stack[entry].tnear = near4;
+    stack[exit].tfar = far4;
+    stack[exit].node = 0;
+    stack[exit].prev = 0;
+    if (perf_anal)
+        tests[threadID]+=1.0f;
+    int retval = 0;
+    while (currnode) {
+        while (!currnode->isLeaf()) {
+            const float & splitPos = currnode->getSplitPos();
+            const int & axis = currnode->getAxis();
+            // d4 = _mul(_sub(spos, o), rd)
+            const __m128 split_minus_org4 = _mm_sub_ps(_mm_set_ps1(splitPos), org4[axis]);
+            const __m128 plane4 = _mm_mul_ps(split_minus_org4, rdir4[axis]);
+            //
+            const __m128 dirmask4 = _mm_cmplt_ps(rdir4[axis], _mm_setzero_ps());
+            const __m128 nhit4 = _mm_cmple_ps(near4, plane4);
+            const __m128 fhit4 = _mm_cmpge_ps(far4, plane4);
+            const __m128 select4 = _mm_xor_ps(mix0f, dirmask4);
+            const __m128 valid4 = _mm_cmple_ps(near4, far4);
+                
+            const __m128 hittag4 = _mm_and_ps(valid4, BLEND(nhit4, fhit4, select4));
+
+            if (perf_anal)
+                nodes_tested[threadID] += 1.0f;
+            int hitmask = _mm_movemask_epi8(_mm_castps_si128(hittag4));
+            int hitright = hitmask & 0xcccc;
+            int hitleft = hitmask & 0x3333;
+            if (hitmask == 0)  // didn't hit anything sensible
+                break;
+            if (hitright == 0) {
+                currnode = currnode->getLeft();
+                continue;
+            }
+            if (hitleft == 0) {
+                currnode = currnode->getLeft() + 1;
+                continue;
+            }
+            const __m128 left = _mm_cmple_ps(_mm_setzero_ps(), split_minus_org4);
+            int tmp = exit++;
+            
+            
+            // left[i] = 0xFFFFFFFF if orig[i] is to the left of split plane
+            /*
+            Logic here:
+            e.g. if picking left
+            if O is on left and there's near hit (plane4 >= near4), then keep near4
+            if O is on left and there's no near hit (plane4 < near4), then invalid ray
+            if O is right and there's far hit (plane4 <= far4), then near=plane
+            if O is right and there's no far hit, then invalid ray
+            */
+            const __m128 far_hits = _mm_or_ps(
+                _mm_and_ps(nhit4, _mm_min_ps(far4, plane4)),
+                _mm_andnot_ps(nhit4, near4)
+                );
+            const __m128 near_hits = _mm_or_ps(
+                _mm_and_ps(fhit4, _mm_max_ps(plane4, near4)),
+                _mm_andnot_ps(fhit4, far4));
+            const __m128 near_hits_side = _mm_or_ps(
+                _mm_and_ps(nhit4, near4),
+                _mm_andnot_ps(nhit4, far4)
+                );
+            const __m128 far_hits_side = _mm_or_ps(
+                _mm_and_ps(fhit4, far4),
+                _mm_andnot_ps(fhit4, near4)
+                );
+
+            const __m128 tn_left = _mm_or_ps(
+                _mm_and_ps(left, near_hits_side),
+                _mm_andnot_ps(left,near_hits)
+                );
+            const __m128 tf_left = _mm_or_ps(
+                _mm_and_ps(left, far_hits),
+                _mm_andnot_ps(left,far_hits_side)
+            );
+            // same as ^ but negated masks
+            const __m128 tn_right = _mm_or_ps(
+                _mm_andnot_ps(left, near_hits_side),
+                _mm_and_ps(left, near_hits));
+            const __m128 tf_right = _mm_or_ps(
+                _mm_andnot_ps(left, far_hits),
+                _mm_and_ps(left, far_hits_side)
+            );
+            const int valid_rays = CountSignBits4(valid4);
+            if (CountSignBits4(split_minus_org4) <= valid_rays/2)
+            {
+                currnode = currnode->getLeft();
+                farchild = currnode + 1;
+                stack[exit].tnear = tn_right;
+                stack[exit].tfar = tf_right;
+                //..stack[exit].mask = mask & (~tmpMask);
+                far4 = tf_left;
+                near4 = tn_left;
+                //mask = mask & tmpMask;
+            }
+            else {
+                farchild = currnode->getLeft();
+                currnode = farchild + 1;
+
+                stack[exit].tnear = tn_left;
+                stack[exit].tfar = tf_left;
+                //stack[exit].mask = mask & tmpMask;
+                near4 = tn_right;
+                far4 = tf_right;
+                //mask = mask & (~tmpMask);
+            }
+            stack[exit].node = farchild;
+            if (exit > m_stack_size)
+                m_stack_size = exit;
+        }
+        if (currnode->isLeaf())
+        {
+            ObjList * head = currnode->getObjList();
+            __m128 d = far4; // _mm_and_ps(_mm_cmple_ps(near4, far4), far4);
+
+            if (perf_anal)
+                leaves_checked[threadID] += 1.0f;
+
+            while (head) {
+                Triangle * tri = head->getTriangle();
+                
+                __m128 result = tri->intersectPack(org4, dir4, d, near4);
+                int mask = _mm_movemask_ps(result);
+                if (perf_anal) {
+                    tris_checked[threadID] += 1.0f;
+                    hits[threadID] += ((mask & 1) >> 0) + ((mask & 2) >> 1) + ((mask & 4) >> 2) + ((mask & 8) >> 3);
+                }
+                
+                // result[0..3] = 1 if hit else 0
+                if (mask) {
+                    retval |= mask; // &mask;
+                    for (int i = 0, j = 1; i < 4; i++, j <<= 1)
+                        if (mask & j)
+                            triangles[3-i] = tri;
+                    result = _mm_and_ps(_mm_cmplt_ps(d, dist), result);
+                    dist = _mm_or_ps(_mm_and_ps(result, d), _mm_andnot_ps(result, dist));
+                    if (_mm_movemask_ps(_mm_cmplt_ps(near4, dist)) == 0)
+                        break;
+                }
+                head = head->getNext();
+            }
+        }
+        if (early_out && retval == 1 + 2 + 4 + 8) return;
+
+        entry = exit;
+        currnode = stack[exit].node;
+        far4 = stack[exit].tfar;
+        //far4 = _mm_max_ps(_mm_set_ps1(EPS), far4);
+        far4 = _mm_min_ps(far4, dist);
+        near4 = stack[exit].tnear;
+        //near4 = _mm_min_ps(near4, dist);
+        exit--;
+        if (exit > m_stack_size)
+            m_stack_size = exit;
+    }
+    return;
+}
+
+void KdTree::outBench(){
+    float avg_nodes, avg_leaves, avg_tris, total_invs, hit_rate;
+    avg_nodes = avg_leaves = avg_tris = total_invs, hit_rate = 0.0f;
+    for (int i = 0; i < 8; i++) {
+        avg_nodes += nodes_tested[i];
+        nodes_tested[i] = 0;
+        avg_leaves += leaves_checked[i];
+        leaves_checked[i] = 0;
+        avg_tris += tris_checked[i];
+        tris_checked[i] = 0;
+        total_invs += tests[i];
+        tests[i] = 0;
+        hit_rate += hits[i];
+        hits[i] = 0;
+    }
+    hit_rate /= avg_tris;
+    avg_nodes /= total_invs;
+    avg_leaves /= total_invs;
+    avg_tris /= total_invs;
+    LogDefault->criticalOutValue("avg_nodes", avg_nodes);
+    LogDefault->criticalOutValue("avg_leaves", avg_leaves);
+    LogDefault->criticalOutValue("avg_tris", avg_tris);
+    LogDefault->criticalOutValue("total_invs", total_invs);
+    LogDefault->criticalOutValue("hit_rate", hit_rate);
+    LogDefault->criticalOutValue("max stack size", m_stack_size);
 }
 
 void KdTree::DumpTree() {

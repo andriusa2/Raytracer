@@ -22,6 +22,7 @@ void Engine::trace(unsigned int buffer[]) {
 #pragma omp master
     {
         LogDefault->criticalOutValue("Rendering took", (omp_get_wtime() - start)*1000.0);
+        scene->getTree().outBench();
     }
 }
 

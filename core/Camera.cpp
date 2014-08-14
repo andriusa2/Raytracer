@@ -132,6 +132,9 @@ void Camera::mouseTo(float nx, float ny) {
     cx = nx;
     cy = ny;
 }
+void Camera::dumpLoc() {
+    LogDefault->criticalOutValue("Camera: ", *this);
+}
 void Camera::parseKey(unsigned int vkey) {
     switch (vkey) {
 	case 0x44: go(RIGHT);return;//d
@@ -141,6 +144,7 @@ void Camera::parseKey(unsigned int vkey) {
     case 0x45: traceMouse = !traceMouse; return;
     case 0xBB: changeSpeed(1); return; //+
     case 0xBD: changeSpeed(-1); return; //-
+    case 0x46: dumpLoc(); return;
 
     }
 }
